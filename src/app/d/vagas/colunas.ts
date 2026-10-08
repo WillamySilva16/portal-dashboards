@@ -11,6 +11,9 @@ export const COLUNAS_VAGAS: Coluna<VagaTabela>[] = [
   { id: "cargo", titulo: "Cargo", valor: (v) => v.cargo },
   { id: "local", titulo: "Local", valor: (v) => v.local },
   { id: "base", titulo: "Base", valor: (v) => v.base },
+  { id: "posicoes", titulo: "Posições", valor: (v) => v.posicoes, numero: true },
+  { id: "fechadas", titulo: "Fechadas", valor: (v) => v.fechadas, numero: true },
+  { id: "pendentes", titulo: "Pendentes", valor: (v) => v.pendentes, numero: true },
   { id: "dias", titulo: "Dias", valor: (v) => v.diasMax, numero: true },
   { id: "situacao", titulo: "Situação", valor: (v) => v.situacao },
   { id: "sla", titulo: "SLA", valor: (v) => v.sla },
@@ -18,7 +21,6 @@ export const COLUNAS_VAGAS: Coluna<VagaTabela>[] = [
 
 // Só na planilha
 export const EXTRAS_VAGAS: Coluna<VagaTabela>[] = [
-  { id: "posicoes", titulo: "Posições", valor: (v) => v.posicoes, numero: true },
   { id: "categoria", titulo: "Categoria", valor: (v) => v.categoria },
   { id: "cliente", titulo: "Cliente", valor: (v) => v.cliente },
   { id: "segmento", titulo: "Segmento", valor: (v) => v.segmento },
@@ -31,6 +33,7 @@ export const COLUNAS_POSICOES: Coluna<Linha>[] = [
   { id: "cargo", titulo: "Cargo", valor: (l) => l.cargo },
   { id: "local", titulo: "Local", valor: (l) => l.local },
   { id: "dias", titulo: "Dias", valor: (l) => l.dias, numero: true },
+  { id: "sitPosicao", titulo: "Situação", valor: (l) => l.sitPosicao },
   { id: "statusRS", titulo: "Status R&S", valor: (l) => l.statusRS },
   { id: "etapa", titulo: "Etapa R&S", valor: (l) => l.etapaRS },
   { id: "solicitante", titulo: "Solicitante", valor: (l) => l.solicitante },
@@ -60,6 +63,7 @@ export const COLUNAS_ARRASTADAS: Coluna<VagaTabela>[] = [
   { id: "cargo", titulo: "Cargo", valor: (v) => v.cargo },
   { id: "local", titulo: "Local", valor: (v) => v.local },
   { id: "base", titulo: "Base", valor: (v) => v.base },
+  { id: "pendentes", titulo: "Pendentes", valor: (v) => v.pendentes, numero: true },
   { id: "aberto", titulo: "Dias em aberto", valor: (v) => diasEmAberto(v), numero: true },
   { id: "situacao", titulo: "Situação hoje", valor: (v) => v.situacao },
 ];

@@ -56,6 +56,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/an
             { tipo: "select", nome: "mes", rotulo: "Mês", valor: f.mes?.toString(), opcoes: opcoesMes },
             { tipo: "select", nome: "base", rotulo: "Base", valor: f.base, opcoes: lista(opcoes(linhas, "base")) },
             { tipo: "select", nome: "cliente", rotulo: "Cliente", valor: f.cliente, opcoes: lista(opcoes(linhas, "cliente")) },
+            { tipo: "select", nome: "sitPosicao", rotulo: "Situação da posição", valor: f.sitPosicao, opcoes: lista(opcoes(linhas, "sitPosicao")) },
             { tipo: "select", nome: "statusRS", rotulo: "Status R&S", valor: f.statusRS, opcoes: lista(opcoes(linhas, "statusRS")) },
             { tipo: "texto", nome: "vaga", rotulo: "Vaga", valor: f.vaga, placeholder: "Nº da vaga" },
           ]}
@@ -64,11 +65,15 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/an
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <Kpi titulo="Posições solicitadas" valor={num(m.solicitadas)} cor="#2F80ED" />
-          <Kpi titulo="Posições concluídas" valor={num(m.concluidas)} cor="#2BB8A3" variacao={pct(m.concluidas)} />
-          <Kpi titulo="Posições em andamento" valor={num(m.andamento)} cor="#F39C12" variacao={pct(m.andamento)} />
-          <Kpi titulo="Posições excluídas" valor={num(m.excluidas)} cor="#E45757" variacao={pct(m.excluidas)} />
-          <Kpi titulo="Sem classificação" valor={num(m.semClassificacao)} cor="#98A2B3" variacao={pct(m.semClassificacao)} />
+          <Kpi titulo="Fechadas" valor={num(m.fechadas)} cor="#16A085" variacao={pct(m.fechadas) ?? "Candidato aprovado"} />
+          <Kpi titulo="Pendentes" valor={num(m.pendentes)} cor="#F39C12" variacao={pct(m.pendentes)} />
+          <Kpi titulo="Canceladas" valor={num(m.canceladas)} cor="#98A2B3" variacao={pct(m.canceladas)} />
+          <Kpi titulo="Excluídas" valor={num(m.excluidas)} cor="#E45757" variacao={pct(m.excluidas)} />
         </div>
+        <p className="-mt-2 text-xs text-zinc-500">
+          Fechada = candidato aprovado. Pendente = vaga ainda aberta e posição sem aprovado.
+          {m.naoPreenchidas > 0 && ` + ${num(m.naoPreenchidas)} não preenchidas (vaga concluída sem aprovado nessa posição).`}
+        </p>
 
         <div className="grid gap-4 lg:grid-cols-2">
           <Secao titulo="Vagas abertas por local (top 10)">
@@ -110,6 +115,7 @@ function TabelaPosicoes({ linhas, filtros, ordem }: { linhas: Linha[]; filtros: 
               <td className="px-3 py-1.5">{l.cargo}</td>
               <td className="px-3 py-1.5">{l.local}</td>
               <td className="px-3 py-1.5 text-right tabular-nums">{l.dias ?? "—"}</td>
+              <td className="px-3 py-1.5"><Tag texto={l.sitPosicao} /></td>
               <td className="px-3 py-1.5"><Tag texto={l.statusRS} /></td>
               <td className="px-3 py-1.5">{l.etapaRS}</td>
               <td className="px-3 py-1.5">{l.solicitante ?? "—"}</td>
