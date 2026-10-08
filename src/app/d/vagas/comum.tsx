@@ -15,7 +15,7 @@ export function qs(f: Filtros, ordem?: string) {
   return s ? `?${s}` : "";
 }
 
-export function Abas({ atual, filtros }: { atual: "geral" | "analise"; filtros: Filtros }) {
+export function Abas({ atual, filtros }: { atual: "geral" | "analise" | "arrastadas"; filtros: Filtros }) {
   const aba = (id: string, href: string, texto: string) => (
     <Link
       href={href + qs(filtros)}
@@ -30,6 +30,7 @@ export function Abas({ atual, filtros }: { atual: "geral" | "analise"; filtros: 
     <nav className="flex gap-6 border-b border-zinc-200">
       {aba("geral", "/d/vagas", "Visão geral")}
       {aba("analise", "/d/vagas/analise", "Análise de Recrutamento")}
+      {aba("arrastadas", "/d/vagas/arrastadas", "Vagas arrastadas")}
     </nav>
   );
 }
@@ -64,6 +65,7 @@ export function Tag({ texto }: { texto: string | null }) {
     "Cancelada": "bg-zinc-100 text-zinc-600",
     "EXCLUÍDA": "bg-red-50 text-red-700",
     "Em andamento": "bg-blue-50 text-blue-800",
+    "Outra situação": "bg-amber-50 text-amber-800",
     "EM ANDAMENTO": "bg-blue-50 text-blue-800",
   };
   return <span className={`rounded px-1.5 py-0.5 text-xs whitespace-nowrap ${cor[texto] ?? "bg-zinc-100 text-zinc-700"}`}>{texto}</span>;

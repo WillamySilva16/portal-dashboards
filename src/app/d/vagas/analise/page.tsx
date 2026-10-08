@@ -62,11 +62,12 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/an
         />
         <FiltrosAtivos base="/d/vagas/analise" filtros={f} />
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <Kpi titulo="Posições solicitadas" valor={num(m.solicitadas)} cor="#2F80ED" />
           <Kpi titulo="Posições concluídas" valor={num(m.concluidas)} cor="#2BB8A3" variacao={pct(m.concluidas)} />
-          <Kpi titulo="Em andamento" valor={num(m.andamento)} cor="#F39C12" variacao={pct(m.andamento)} />
+          <Kpi titulo="Posições em andamento" valor={num(m.andamento)} cor="#F39C12" variacao={pct(m.andamento)} />
           <Kpi titulo="Posições excluídas" valor={num(m.excluidas)} cor="#E45757" variacao={pct(m.excluidas)} />
+          <Kpi titulo="Sem classificação" valor={num(m.semClassificacao)} cor="#98A2B3" variacao={pct(m.semClassificacao)} />
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">

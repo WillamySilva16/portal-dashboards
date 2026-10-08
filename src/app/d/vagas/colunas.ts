@@ -1,6 +1,6 @@
 // Colunas das tabelas do Dashboard de Vagas. As mesmas definições servem
 // pra tela (cabeçalho que ordena) e pra planilha baixada.
-import type { Coluna, Linha, VagaTabela } from "@/lib/vagas";
+import { hojeUTC, type Coluna, type Linha, type VagaTabela } from "@/lib/vagas";
 
 export const dataBR = (d: Date) => d.toLocaleDateString("pt-BR", { timeZone: "UTC" });
 
@@ -44,6 +44,24 @@ export const EXTRAS_POSICOES: Coluna<Linha>[] = [
   { id: "cliente", titulo: "Cliente", valor: (l) => l.cliente },
   { id: "base", titulo: "Base", valor: (l) => l.base },
   { id: "supervisao", titulo: "Supervisão", valor: (l) => l.supervisao },
+];
+
+// Dias em aberto: até hoje, se ainda está aberta; até o fechamento, se já foi concluída
+export function diasEmAberto(v: VagaTabela, hoje = hojeUTC()) {
+  if (v.situacao === "Concluída") return v.diasMax;
+  if (v.situacao === "Cancelada") return null;
+  return Math.round((hoje - v.data.getTime()) / 86_400_000);
+}
+
+export const COLUNAS_ARRASTADAS: Coluna<VagaTabela>[] = [
+  { id: "data", titulo: "Abertura", valor: (v) => v.data, numero: true },
+  { id: "vaga", titulo: "Vaga", valor: (v) => v.vaga, numero: true },
+  { id: "supervisao", titulo: "Supervisão", valor: (v) => v.supervisao },
+  { id: "cargo", titulo: "Cargo", valor: (v) => v.cargo },
+  { id: "local", titulo: "Local", valor: (v) => v.local },
+  { id: "base", titulo: "Base", valor: (v) => v.base },
+  { id: "aberto", titulo: "Dias em aberto", valor: (v) => diasEmAberto(v), numero: true },
+  { id: "situacao", titulo: "Situação hoje", valor: (v) => v.situacao },
 ];
 
 // Valor como texto pra planilha

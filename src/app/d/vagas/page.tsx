@@ -71,10 +71,11 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas">[
         />
         <FiltrosAtivos base="/d/vagas" filtros={f} />
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <Kpi titulo="Vagas abertas" valor={num(m.abertas)} cor="#2F80ED" variacao={variacao(m.abertas, mAnt?.abertas)} />
           <Kpi titulo="Vagas concluídas" valor={num(m.concluidas)} cor="#16A085" variacao={variacao(m.concluidas, mAnt?.concluidas)} />
           <Kpi titulo="Em andamento" valor={num(m.andamento)} cor="#F39C12" variacao={variacao(m.andamento, mAnt?.andamento)} />
+          <Kpi titulo="Canceladas" valor={num(m.canceladas)} cor="#98A2B3" variacao={variacao(m.canceladas, mAnt?.canceladas)} />
           <Kpi
             titulo="Tempo médio de fechamento (dias)"
             valor={m.tempoMedio === null ? "—" : m.tempoMedio.toLocaleString("pt-BR", { maximumFractionDigits: 1, minimumFractionDigits: 1 })}
@@ -82,6 +83,11 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas">[
             variacao={variacao(m.tempoMedio, mAnt === undefined ? undefined : mAnt.tempoMedio, 1)}
           />
         </div>
+        {m.outras > 0 && (
+          <p className="-mt-2 text-xs text-zinc-500">
+            + {num(m.outras)} {m.outras === 1 ? "vaga" : "vagas"} em outra situação (Envia Reavaliação, Retorna Seleção…), fora dos cards acima.
+          </p>
+        )}
 
         <div className="grid gap-4 lg:grid-cols-2">
           <Secao titulo="Vagas por mês">

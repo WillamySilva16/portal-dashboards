@@ -19,7 +19,8 @@ export type Linha = {
   ano: number;
   mes: number; // 1-12
   dias: number | null;
-  situacao: "Concluída" | "Cancelada" | "Em andamento";
+  fechamento: number | null; // dia do fechamento (ms UTC)
+  situacao: Situacao;
   statusRS: "CONCLUÍDA" | "EM ANDAMENTO" | "EXCLUÍDA" | "SEM CLASSIFICAÇÃO";
   etapaRS: string;
   sla: string | null;
@@ -32,6 +33,17 @@ export type Linha = {
   supervisao: string | null;
   base: string | null;
 };
+
+// Situação da vaga, pelo Status do sistema. "Em andamento" é só ENVIA SELEÇÃO;
+// os poucos ENVIA REAVALIAÇÃO / RETORNA SELEÇÃO ficam em "Outra situação".
+export type Situacao = "Concluída" | "Cancelada" | "Em andamento" | "Outra situação";
+function situacaoDe(status: string | null): Situacao {
+  const st = (status ?? "").trim().toUpperCase();
+  if (st === "CONCLUÍDO") return "Concluída";
+  if (st === "CANCELA") return "Cancelada";
+  if (st === "ENVIA SELEÇÃO") return "Em andamento";
+  return "Outra situação";
+}
 
 // Mesmo mapeamento da coluna "Etapa R&S" do Power Query
 const ETAPAS: Record<string, string> = {
@@ -73,7 +85,8 @@ export async function getVagas() {
       ano: r.data.getUTCFullYear(),
       mes: r.data.getUTCMonth() + 1,
       dias: fechDia === null ? null : Math.round((fechDia - r.data.getTime()) / DIA),
-      situacao: r.status === "CONCLUÍDO" ? "Concluída" : r.status === "CANCELA" ? "Cancelada" : "Em andamento",
+      fechamento: fechDia,
+      situacao: situacaoDe(r.status),
       statusRS:
         sit === "APROVADO" ? "CONCLUÍDA"
         : sit === "PENDENTE" ? "EM ANDAMENTO"
@@ -172,12 +185,14 @@ export function medidasVagas(ls: Linha[]) {
     concluidas: vagasDistintas(ls.filter((l) => l.situacao === "Concluída")),
     andamento: vagasDistintas(ls.filter((l) => l.situacao === "Em andamento")),
     canceladas: vagasDistintas(ls.filter((l) => l.situacao === "Cancelada")),
+    outras: vagasDistintas(ls.filter((l) => l.situacao === "Outra situação")),
     tempoMedio: tempos.length ? tempos.reduce((a, b) => a + b, 0) / tempos.length : null,
   };
 }
 
 export function medidasPosicoes(ls: Linha[]) {
   return {
+    semClassificacao: ls.filter((l) => l.statusRS === "SEM CLASSIFICAÇÃO").length,
     solicitadas: ls.length,
     concluidas: ls.filter((l) => l.statusRS === "CONCLUÍDA").length,
     andamento: ls.filter((l) => l.statusRS === "EM ANDAMENTO").length,
@@ -277,4 +292,72 @@ export function ordenar<T>(itens: T[], ordem: string | undefined, colunas: Colun
     const r = typeof a === "number" && typeof b === "number" ? a - b : String(a).localeCompare(String(b), "pt-BR", { numeric: true });
     return r * sinal;
   });
+}
+
+// ---------- Vagas arrastadas ----------
+// Vaga arrastada pra um mês = aberta antes do dia 1º dele e ainda não fechada
+// nesse dia. Concluídas usam a data de fechamento; canceladas não têm data,
+// então ficam de fora. Em andamento (e outras situações abertas) contam sempre.
+
+const ehAberta = (l: Linha) => l.situacao === "Em andamento" || l.situacao === "Outra situação";
+
+// Hoje no fuso de São Paulo, como dia em ms UTC (mesma base das datas do banco)
+export function hojeUTC() {
+  const [a, m, d] = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" }).split("-").map(Number);
+  return Date.UTC(a, m - 1, d);
+}
+
+// Mês de referência: o filtrado (ano/mês); sem mês, o mês atual (ou dezembro, se o ano filtrado já passou)
+export function mesReferencia(f: Filtros) {
+  const hoje = new Date(hojeUTC());
+  const ano = f.ano ?? hoje.getUTCFullYear();
+  const mes = f.mes ?? (ano === hoje.getUTCFullYear() ? hoje.getUTCMonth() + 1 : 12);
+  return { ano, mes, inicio: Date.UTC(ano, mes - 1, 1) };
+}
+
+export function arrastadasEm(ls: Linha[], inicio: number) {
+  return ls.filter((l) => l.data.getTime() < inicio && (ehAberta(l) || (l.situacao === "Concluída" && l.fechamento !== null && l.fechamento >= inicio)));
+}
+
+export function medidasArrastadas(arr: Linha[]) {
+  const hoje = hojeUTC();
+  const abertas = arr.filter(ehAberta);
+  const idade = new Map<number, number>();
+  for (const l of abertas) idade.set(l.vaga, Math.round((hoje - l.data.getTime()) / DIA));
+  const dias = [...idade.values()];
+  return {
+    arrastadas: vagasDistintas(arr),
+    aindaAbertas: vagasDistintas(abertas),
+    concluidasDepois: vagasDistintas(arr.filter((l) => l.situacao === "Concluída")),
+    idadeMedia: dias.length ? dias.reduce((a, b) => a + b, 0) / dias.length : null,
+  };
+}
+
+// Quantas vagas foram arrastadas pra cada mês (do 2º mês com dados até a referência)
+export function arrastadasPorMes(ls: Linha[], ate: number) {
+  if (!ls.length) return [];
+  const primeira = ls.reduce((m, l) => Math.min(m, l.data.getTime()), Infinity);
+  const d0 = new Date(primeira);
+  let a = d0.getUTCFullYear();
+  let m = d0.getUTCMonth() + 1;
+  const meses = [];
+  for (;;) {
+    m++;
+    if (m > 12) { a++; m = 1; }
+    const inicio = Date.UTC(a, m - 1, 1);
+    if (inicio > ate) break;
+    meses.push({ mes: `${MESES[m - 1].slice(0, 3)}/${String(a).slice(2)}`, ano: a, m, Arrastadas: vagasDistintas(arrastadasEm(ls, inicio)) });
+  }
+  return meses;
+}
+
+// Arrastadas por mês de abertura, das mais antigas pras mais novas
+export function arrastadasPorAbertura(arr: Linha[]) {
+  const grupos = new Map<string, Set<number>>();
+  for (const l of [...arr].sort((a, b) => a.data.getTime() - b.data.getTime())) {
+    const k = `${MESES[l.mes - 1].slice(0, 3)}/${String(l.ano).slice(2)}`;
+    if (!grupos.has(k)) grupos.set(k, new Set());
+    grupos.get(k)!.add(l.vaga);
+  }
+  return [...grupos.entries()].map(([nome, v]) => ({ nome, valor: v.size }));
 }

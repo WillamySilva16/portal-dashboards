@@ -37,10 +37,11 @@ function Dica({ active, payload, label, clicavel }: { active?: boolean; payload?
 const APAGADA = 0.3;
 const opacidade = (ativa: boolean, algumaSelecionada: boolean) => (!algumaSelecionada || ativa ? 1 : APAGADA);
 
-type Mes = { mes: string; ano: number; m: number; Abertas: number; Concluídas: number };
+type Mes = { mes: string; ano: number; m: number } & Record<string, string | number>;
+const PADRAO: [string, string][] = [["Abertas", "var(--serie-1)"], ["Concluídas", "var(--serie-2)"]];
 
-// Colunas agrupadas: abertas x concluídas por mês. Clicar num mês filtra por ele.
-export function GraficoMensal({ dados, ano, mes }: { dados: Mes[]; ano?: number; mes?: number }) {
+// Colunas por mês (padrão: abertas x concluídas). Clicar num mês filtra por ele.
+export function GraficoMensal({ dados, ano, mes, series = PADRAO }: { dados: Mes[]; ano?: number; mes?: number; series?: [string, string][] }) {
   const fc = useFiltroCruzado();
   if (!dados.length) return <SemDados />;
   const algum = mes !== undefined;
@@ -55,19 +56,17 @@ export function GraficoMensal({ dados, ano, mes }: { dados: Mes[]; ano?: number;
         <XAxis dataKey="mes" tick={eixo} tickLine={false} axisLine={{ stroke: "var(--grade)" }} />
         <YAxis tick={eixo} tickLine={false} axisLine={false} allowDecimals={false} />
         <Tooltip content={<Dica clicavel={!!fc} />} cursor={{ fill: "rgba(0,0,0,0.04)" }} />
-        <Legend verticalAlign="top" align="left" iconType="square" iconSize={10} wrapperStyle={{ fontSize: 12, top: -4 }} formatter={(v: string) => <span style={{ color: "var(--foreground)" }}>{v}</span>} />
-        <Bar isAnimationActive={false} dataKey="Abertas" fill="var(--serie-1)" radius={[4, 4, 0, 0]} maxBarSize={28} onClick={clicar}>
-          {dados.map((d) => (
-            <Cell key={d.mes} fillOpacity={opacidade(ativo(d), algum)} />
-          ))}
-          <LabelList dataKey="Abertas" position="top" fontSize={11} fill="var(--texto-eixo)" formatter={fmt} />
-        </Bar>
-        <Bar isAnimationActive={false} dataKey="Concluídas" fill="var(--serie-2)" radius={[4, 4, 0, 0]} maxBarSize={28} onClick={clicar}>
-          {dados.map((d) => (
-            <Cell key={d.mes} fillOpacity={opacidade(ativo(d), algum)} />
-          ))}
-          <LabelList dataKey="Concluídas" position="top" fontSize={11} fill="var(--texto-eixo)" formatter={fmt} />
-        </Bar>
+        {series.length > 1 && (
+          <Legend verticalAlign="top" align="left" iconType="square" iconSize={10} wrapperStyle={{ fontSize: 12, top: -4 }} formatter={(v: string) => <span style={{ color: "var(--foreground)" }}>{v}</span>} />
+        )}
+        {series.map(([chave, cor]) => (
+          <Bar key={chave} isAnimationActive={false} dataKey={chave} fill={cor} radius={[4, 4, 0, 0]} maxBarSize={28} onClick={clicar}>
+            {dados.map((d) => (
+              <Cell key={d.mes} fillOpacity={opacidade(ativo(d), algum)} />
+            ))}
+            <LabelList dataKey={chave} position="top" fontSize={11} fill="var(--texto-eixo)" formatter={fmt} />
+          </Bar>
+        ))}
       </BarChart>
     </ResponsiveContainer>
   );
