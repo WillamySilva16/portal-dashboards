@@ -128,6 +128,9 @@ function TabelaVagas({ linhas, filtros, ordem }: { linhas: Linha[]; filtros: Fil
               <td className="px-3 py-1.5">{v.cargo}</td>
               <td className="px-3 py-1.5">{v.local}</td>
               <td className="px-3 py-1.5 whitespace-nowrap">{v.base ?? "—"}</td>
+              <td className="px-3 py-1.5 text-right tabular-nums">{v.posicoes}</td>
+              <td className="px-3 py-1.5 text-right tabular-nums">{v.fechadas}</td>
+              <td className={`px-3 py-1.5 text-right tabular-nums ${v.pendentes ? "font-semibold text-amber-700" : ""}`}>{v.pendentes}</td>
               <td className="px-3 py-1.5 text-right tabular-nums">{v.diasMax ?? "—"}</td>
               <td className="px-3 py-1.5"><Tag texto={v.situacao} /></td>
               <td className="px-3 py-1.5"><Tag texto={v.sla} /></td>

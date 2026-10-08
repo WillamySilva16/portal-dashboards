@@ -21,6 +21,7 @@ export type Linha = {
   dias: number | null;
   fechamento: number | null; // dia do fechamento (ms UTC)
   situacao: Situacao;
+  sitPosicao: SitPosicao;
   statusRS: "CONCLUÍDA" | "EM ANDAMENTO" | "EXCLUÍDA" | "SEM CLASSIFICAÇÃO";
   etapaRS: string;
   sla: string | null;
@@ -43,6 +44,17 @@ function situacaoDe(status: string | null): Situacao {
   if (st === "CANCELA") return "Cancelada";
   if (st === "ENVIA SELEÇÃO") return "Em andamento";
   return "Outra situação";
+}
+
+// Situação de cada posição (pessoa a contratar) dentro da vaga:
+// fechada = candidato aprovado; pendente = vaga ainda aberta sem aprovado.
+export type SitPosicao = "Fechada" | "Pendente" | "Cancelada" | "Excluída" | "Não preenchida";
+function sitPosicaoDe(fase: string, vaga: Situacao): SitPosicao {
+  if (fase === "APROVADO") return "Fechada";
+  if (fase === "FUNCIONÁRIO EXCLUÍDO") return "Excluída";
+  if (vaga === "Cancelada") return "Cancelada";
+  if (vaga === "Concluída") return "Não preenchida"; // vaga fechada sem aprovado nesta posição
+  return "Pendente";
 }
 
 // Mesmo mapeamento da coluna "Etapa R&S" do Power Query
@@ -87,6 +99,7 @@ export async function getVagas() {
       dias: fechDia === null ? null : Math.round((fechDia - r.data.getTime()) / DIA),
       fechamento: fechDia,
       situacao: situacaoDe(r.status),
+      sitPosicao: sitPosicaoDe(sit, situacaoDe(r.status)),
       statusRS:
         sit === "APROVADO" ? "CONCLUÍDA"
         : sit === "PENDENTE" ? "EM ANDAMENTO"
@@ -120,6 +133,7 @@ export type Filtros = {
   statusRS?: string;
   categoria?: string;
   etapa?: string;
+  sitPosicao?: string;
   vaga?: string;
 };
 
@@ -133,7 +147,7 @@ export function lerFiltros(sp: Record<string, string | string[] | undefined>): F
   return {
     ano: n("ano"), mes: n("mes"), base: s("base"), local: s("local"), cliente: s("cliente"),
     situacao: s("situacao"), status: s("status"), statusRS: s("statusRS"),
-    categoria: s("categoria"), etapa: s("etapa"), vaga: s("vaga"),
+    categoria: s("categoria"), etapa: s("etapa"), sitPosicao: s("sitPosicao"), vaga: s("vaga"),
   };
 }
 
@@ -155,6 +169,7 @@ export function filtrar(linhas: Linha[], f: Filtros, ignorarPeriodo = false) {
       (f.statusRS === undefined || l.statusRS === f.statusRS) &&
       (f.categoria === undefined || l.categoria === f.categoria) &&
       (f.etapa === undefined || l.etapaRS === f.etapa) &&
+      (f.sitPosicao === undefined || l.sitPosicao === f.sitPosicao) &&
       (f.vaga === undefined || String(l.vaga).includes(f.vaga))
   );
 }
@@ -191,12 +206,14 @@ export function medidasVagas(ls: Linha[]) {
 }
 
 export function medidasPosicoes(ls: Linha[]) {
+  const n = (sit: SitPosicao) => ls.filter((l) => l.sitPosicao === sit).length;
   return {
-    semClassificacao: ls.filter((l) => l.statusRS === "SEM CLASSIFICAÇÃO").length,
     solicitadas: ls.length,
-    concluidas: ls.filter((l) => l.statusRS === "CONCLUÍDA").length,
-    andamento: ls.filter((l) => l.statusRS === "EM ANDAMENTO").length,
-    excluidas: ls.filter((l) => l.statusRS === "EXCLUÍDA").length,
+    fechadas: n("Fechada"),
+    pendentes: n("Pendente"),
+    canceladas: n("Cancelada"),
+    excluidas: n("Excluída"),
+    naoPreenchidas: n("Não preenchida"),
   };
 }
 
@@ -251,7 +268,7 @@ export function vagasPor(ls: Linha[], campo: keyof Linha, limite = 10, agruparRe
 
 // ---------- Tabelas (tela e planilha) ----------
 
-export type VagaTabela = Linha & { diasMax: number | null; posicoes: number };
+export type VagaTabela = Linha & { diasMax: number | null; posicoes: number; fechadas: number; pendentes: number };
 
 // Uma linha por vaga (como a tabela do Power BI, que agrupa as posições), mais recentes primeiro
 export function linhasPorVaga(linhas: Linha[]): VagaTabela[] {
@@ -263,6 +280,8 @@ export function linhasPorVaga(linhas: Linha[]): VagaTabela[] {
       ...(atual ?? l),
       diasMax: Number.isFinite(dias) ? dias : null,
       posicoes: (atual?.posicoes ?? 0) + 1,
+      fechadas: (atual?.fechadas ?? 0) + (l.sitPosicao === "Fechada" ? 1 : 0),
+      pendentes: (atual?.pendentes ?? 0) + (l.sitPosicao === "Pendente" ? 1 : 0),
     });
   }
   return [...porVaga.values()].sort((a, b) => b.data.getTime() - a.data.getTime() || b.vaga - a.vaga);

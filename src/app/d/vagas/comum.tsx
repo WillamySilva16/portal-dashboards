@@ -66,6 +66,10 @@ export function Tag({ texto }: { texto: string | null }) {
     "EXCLUÍDA": "bg-red-50 text-red-700",
     "Em andamento": "bg-blue-50 text-blue-800",
     "Outra situação": "bg-amber-50 text-amber-800",
+    "Fechada": "bg-green-50 text-green-800",
+    "Pendente": "bg-amber-50 text-amber-800",
+    "Excluída": "bg-red-50 text-red-700",
+    "Não preenchida": "bg-zinc-100 text-zinc-600",
     "EM ANDAMENTO": "bg-blue-50 text-blue-800",
   };
   return <span className={`rounded px-1.5 py-0.5 text-xs whitespace-nowrap ${cor[texto] ?? "bg-zinc-100 text-zinc-700"}`}>{texto}</span>;
@@ -73,7 +77,7 @@ export function Tag({ texto }: { texto: string | null }) {
 
 const ROTULOS: Record<string, string> = {
   ano: "Ano", mes: "Mês", base: "Base", local: "Local", cliente: "Cliente", situacao: "Situação",
-  status: "Status", statusRS: "Status R&S", categoria: "Categoria", etapa: "Etapa", vaga: "Vaga",
+  status: "Status", statusRS: "Status R&S", categoria: "Categoria", etapa: "Etapa", sitPosicao: "Situação da posição", vaga: "Vaga",
 };
 
 // Faixa "Filtros ativos" com um × em cada um, como os chips do Power BI

@@ -166,6 +166,7 @@ function TabelaArrastadas({ linhas, filtros, ordem }: { linhas: Linha[]; filtros
               <td className="px-3 py-1.5">{v.cargo}</td>
               <td className="px-3 py-1.5">{v.local}</td>
               <td className="px-3 py-1.5 whitespace-nowrap">{v.base ?? "—"}</td>
+              <td className="px-3 py-1.5 text-right tabular-nums">{v.pendentes}</td>
               <td className="px-3 py-1.5 text-right tabular-nums">{diasEmAberto(v, hoje) ?? "—"}</td>
               <td className="px-3 py-1.5"><Tag texto={v.situacao} /></td>
             </tr>
