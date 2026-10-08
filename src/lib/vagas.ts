@@ -105,6 +105,8 @@ export type Filtros = {
   situacao?: string;
   status?: string;
   statusRS?: string;
+  categoria?: string;
+  etapa?: string;
   vaga?: string;
 };
 
@@ -117,8 +119,14 @@ export function lerFiltros(sp: Record<string, string | string[] | undefined>): F
   const n = (k: string) => (s(k) && !isNaN(Number(s(k))) ? Number(s(k)) : undefined);
   return {
     ano: n("ano"), mes: n("mes"), base: s("base"), local: s("local"), cliente: s("cliente"),
-    situacao: s("situacao"), status: s("status"), statusRS: s("statusRS"), vaga: s("vaga"),
+    situacao: s("situacao"), status: s("status"), statusRS: s("statusRS"),
+    categoria: s("categoria"), etapa: s("etapa"), vaga: s("vaga"),
   };
+}
+
+// Filtros como texto, pro filtro cruzado (lado do navegador)
+export function filtrosTexto(f: Filtros) {
+  return Object.fromEntries(Object.entries(f).map(([k, v]) => [k, v === undefined ? undefined : String(v)]));
 }
 
 export function filtrar(linhas: Linha[], f: Filtros, ignorarPeriodo = false) {
@@ -132,6 +140,8 @@ export function filtrar(linhas: Linha[], f: Filtros, ignorarPeriodo = false) {
       (f.situacao === undefined || l.situacao === f.situacao) &&
       (f.status === undefined || l.status === f.status) &&
       (f.statusRS === undefined || l.statusRS === f.statusRS) &&
+      (f.categoria === undefined || l.categoria === f.categoria) &&
+      (f.etapa === undefined || l.etapaRS === f.etapa) &&
       (f.vaga === undefined || String(l.vaga).includes(f.vaga))
   );
 }
@@ -197,6 +207,8 @@ export function porMes(ls: Linha[]) {
       const [ano, mes] = k.split("-").map(Number);
       return {
         mes: `${MESES[mes - 1].slice(0, 3)}/${String(ano).slice(2)}`,
+        ano,
+        m: mes,
         Abertas: vagasDistintas(g),
         Concluídas: vagasDistintas(g.filter((l) => l.situacao === "Concluída")),
       };

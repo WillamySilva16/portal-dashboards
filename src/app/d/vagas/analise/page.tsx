@@ -3,10 +3,11 @@ import { Suspense } from "react";
 import { Cabecalho } from "@/components/cabecalho";
 import { Filtros } from "@/components/filtros";
 import { GraficoBarras, GraficoMensal } from "@/components/graficos";
+import { FiltroCruzado, LinhaFiltro } from "@/components/filtro-cruzado";
 import { Kpi, Secao } from "@/components/kpi";
 import { abrirDashboard } from "@/lib/dal";
-import { filtrar, getVagas, lerFiltros, medidasPosicoes, opcoes, porMes, vagasPor, type Linha } from "@/lib/vagas";
-import { Abas, dataBR, lista, num, opcoesMes, subtitulo, Tag } from "../comum";
+import { filtrar, filtrosTexto, getVagas, lerFiltros, medidasPosicoes, opcoes, porMes, vagasPor, type Linha } from "@/lib/vagas";
+import { Abas, dataBR, FiltrosAtivos, qs, lista, num, opcoesMes, subtitulo, Tag } from "../comum";
 
 export const metadata = { title: "Análise de Recrutamento | Portal de Dashboards" };
 
@@ -41,43 +42,48 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/an
 
       <Abas atual="analise" filtros={f} />
 
-      <Filtros
-        action="/d/vagas/analise"
-        campos={[
-          { tipo: "select", nome: "ano", rotulo: "Ano", valor: f.ano?.toString(), opcoes: lista(opcoes(linhas, "ano")) },
-          { tipo: "select", nome: "mes", rotulo: "Mês", valor: f.mes?.toString(), opcoes: opcoesMes },
-          { tipo: "select", nome: "base", rotulo: "Base", valor: f.base, opcoes: lista(opcoes(linhas, "base")) },
-          { tipo: "select", nome: "cliente", rotulo: "Cliente", valor: f.cliente, opcoes: lista(opcoes(linhas, "cliente")) },
-          { tipo: "select", nome: "statusRS", rotulo: "Status R&S", valor: f.statusRS, opcoes: lista(opcoes(linhas, "statusRS")) },
-          { tipo: "texto", nome: "vaga", rotulo: "Vaga", valor: f.vaga, placeholder: "Nº da vaga" },
-        ]}
-      />
+      <FiltroCruzado base="/d/vagas/analise" filtros={filtrosTexto(f)}>
+        <Filtros
+          key={qs(f)}
+          todos={filtrosTexto(f)}
+          action="/d/vagas/analise"
+          campos={[
+            { tipo: "select", nome: "ano", rotulo: "Ano", valor: f.ano?.toString(), opcoes: lista(opcoes(linhas, "ano")) },
+            { tipo: "select", nome: "mes", rotulo: "Mês", valor: f.mes?.toString(), opcoes: opcoesMes },
+            { tipo: "select", nome: "base", rotulo: "Base", valor: f.base, opcoes: lista(opcoes(linhas, "base")) },
+            { tipo: "select", nome: "cliente", rotulo: "Cliente", valor: f.cliente, opcoes: lista(opcoes(linhas, "cliente")) },
+            { tipo: "select", nome: "statusRS", rotulo: "Status R&S", valor: f.statusRS, opcoes: lista(opcoes(linhas, "statusRS")) },
+            { tipo: "texto", nome: "vaga", rotulo: "Vaga", valor: f.vaga, placeholder: "Nº da vaga" },
+          ]}
+        />
+        <FiltrosAtivos base="/d/vagas/analise" filtros={f} />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi titulo="Posições solicitadas" valor={num(m.solicitadas)} cor="#2F80ED" />
-        <Kpi titulo="Posições concluídas" valor={num(m.concluidas)} cor="#2BB8A3" variacao={pct(m.concluidas)} />
-        <Kpi titulo="Em andamento" valor={num(m.andamento)} cor="#F39C12" variacao={pct(m.andamento)} />
-        <Kpi titulo="Posições excluídas" valor={num(m.excluidas)} cor="#E45757" variacao={pct(m.excluidas)} />
-      </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Kpi titulo="Posições solicitadas" valor={num(m.solicitadas)} cor="#2F80ED" />
+          <Kpi titulo="Posições concluídas" valor={num(m.concluidas)} cor="#2BB8A3" variacao={pct(m.concluidas)} />
+          <Kpi titulo="Em andamento" valor={num(m.andamento)} cor="#F39C12" variacao={pct(m.andamento)} />
+          <Kpi titulo="Posições excluídas" valor={num(m.excluidas)} cor="#E45757" variacao={pct(m.excluidas)} />
+        </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Secao titulo="Vagas abertas por local (top 10)">
-          <GraficoBarras dados={vagasPor(sel, "local", 10, false)} />
-        </Secao>
-        <Secao titulo="Vagas abertas por etapa">
-          <GraficoBarras dados={vagasPor(sel, "etapaRS", 10)} />
-        </Secao>
-        <Secao titulo="Vagas por mês">
-          <GraficoMensal dados={porMes(sel)} />
-        </Secao>
-        <Secao titulo="Vagas abertas por status R&S">
-          <GraficoBarras dados={vagasPor(sel, "statusRS", 10)} />
-        </Secao>
-      </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Secao titulo="Vagas abertas por local (top 10)">
+            <GraficoBarras dados={vagasPor(filtrar(linhas, { ...f, local: undefined }), "local", 10, false)} campo="local" selecionado={f.local} />
+          </Secao>
+          <Secao titulo="Vagas abertas por etapa">
+            <GraficoBarras dados={vagasPor(filtrar(linhas, { ...f, etapa: undefined }), "etapaRS", 10)} campo="etapa" selecionado={f.etapa} />
+          </Secao>
+          <Secao titulo="Vagas por mês">
+            <GraficoMensal dados={porMes(f.mes === undefined ? sel : filtrar(linhas, f, true))} ano={f.ano} mes={f.mes} />
+          </Secao>
+          <Secao titulo="Vagas abertas por status R&S">
+            <GraficoBarras dados={vagasPor(filtrar(linhas, { ...f, statusRS: undefined }), "statusRS", 10)} campo="statusRS" selecionado={f.statusRS} />
+          </Secao>
+        </div>
 
-      <Secao titulo="Posições">
-        <TabelaPosicoes linhas={sel} />
-      </Secao>
+        <Secao titulo="Posições">
+          <TabelaPosicoes linhas={sel} />
+        </Secao>
+      </FiltroCruzado>
     </>
   );
 }
@@ -98,7 +104,7 @@ function TabelaPosicoes({ linhas }: { linhas: Linha[] }) {
         </thead>
         <tbody className="divide-y divide-zinc-100">
           {ordenadas.slice(0, LIMITE).map((l) => (
-            <tr key={`${l.vaga}-${l.posicao}`} className="hover:bg-zinc-50">
+            <LinhaFiltro key={`${l.vaga}-${l.posicao}`} valores={{ vaga: String(l.vaga) }}>
               <td className="px-3 py-1.5 tabular-nums">{l.vaga}</td>
               <td className="px-3 py-1.5 text-right tabular-nums">{l.posicao}</td>
               <td className="px-3 py-1.5">{l.cargo}</td>
@@ -108,7 +114,7 @@ function TabelaPosicoes({ linhas }: { linhas: Linha[] }) {
               <td className="px-3 py-1.5">{l.etapaRS}</td>
               <td className="px-3 py-1.5">{l.solicitante ?? "—"}</td>
               <td className="px-3 py-1.5 whitespace-nowrap tabular-nums">{dataBR(l.data)}</td>
-            </tr>
+            </LinhaFiltro>
           ))}
         </tbody>
       </table>

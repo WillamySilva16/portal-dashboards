@@ -7,8 +7,13 @@ export type CampoFiltro =
   | { tipo: "select"; nome: string; rotulo: string; valor?: string; opcoes: { valor: string; texto: string }[] }
   | { tipo: "texto"; nome: string; rotulo: string; valor?: string; placeholder?: string };
 
-export function Filtros({ action, campos }: { action: string; campos: CampoFiltro[] }) {
-  const algumAtivo = campos.some((c) => c.valor);
+// `todos` são todos os filtros ativos da página: os que não têm campo aqui
+// (ex.: categoria, escolhida clicando no gráfico) vão escondidos no form,
+// pra não se perderem quando a pessoa muda um select.
+export function Filtros({ action, campos, todos = {} }: { action: string; campos: CampoFiltro[]; todos?: Record<string, string | undefined> }) {
+  const nomes = new Set(campos.map((c) => c.nome));
+  const escondidos = Object.entries(todos).filter(([k, v]) => v && !nomes.has(k));
+  const algumAtivo = campos.some((c) => c.valor) || escondidos.length > 0;
   return (
     <Form
       action={action}
@@ -17,6 +22,9 @@ export function Filtros({ action, campos }: { action: string; campos: CampoFiltr
       }}
       className="flex flex-wrap items-end gap-3"
     >
+      {escondidos.map(([k, v]) => (
+        <input key={k} type="hidden" name={k} value={v} />
+      ))}
       {campos.map((c) => (
         <label key={c.nome} className="flex min-w-32 flex-1 flex-col gap-1 text-xs font-medium text-zinc-500">
           {c.rotulo}
