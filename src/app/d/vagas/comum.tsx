@@ -76,7 +76,7 @@ export function Tag({ texto }: { texto: string | null }) {
 }
 
 const ROTULOS: Record<string, string> = {
-  ano: "Ano", mes: "Mês", base: "Base", local: "Local", cliente: "Cliente", situacao: "Situação",
+  ano: "Ano", mes: "Mês", base: "Base", local: "Cliente", cliente: "Empresa", situacao: "Situação",
   status: "Status", statusRS: "Status R&S", categoria: "Categoria", etapa: "Etapa", sitPosicao: "Situação da posição", vaga: "Vaga",
 };
 

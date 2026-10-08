@@ -77,8 +77,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/ar
             { tipo: "select", nome: "ano", rotulo: "Ano de referência", valor: f.ano?.toString(), opcoes: lista(opcoes(linhas, "ano")) },
             { tipo: "select", nome: "mes", rotulo: "Mês de referência", valor: f.mes?.toString(), opcoes: opcoesMes },
             { tipo: "select", nome: "base", rotulo: "Base", valor: f.base, opcoes: lista(opcoes(linhas, "base")) },
-            { tipo: "select", nome: "local", rotulo: "Local", valor: f.local, opcoes: lista(opcoes(linhas, "local")) },
-            { tipo: "select", nome: "cliente", rotulo: "Cliente", valor: f.cliente, opcoes: lista(opcoes(linhas, "cliente")) },
+            { tipo: "select", nome: "local", rotulo: "Cliente", valor: f.local, opcoes: lista(opcoes(linhas, "local")) },
             { tipo: "texto", nome: "vaga", rotulo: "Vaga", valor: f.vaga, placeholder: "Nº da vaga" },
           ]}
         />
@@ -126,7 +125,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/ar
               selecionado={f.categoria}
             />
           </Secao>
-          <Secao titulo="Arrastadas por local (top 10)">
+          <Secao titulo="Arrastadas por cliente (top 10)">
             <GraficoBarras
               dados={vagasPor(arrastadasEm(filtrar(linhas, { ...f, local: undefined }, true), ref.inicio), "local", 10, false)}
               serie="Vagas arrastadas"
