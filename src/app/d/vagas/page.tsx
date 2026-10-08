@@ -63,7 +63,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas">[
             { tipo: "select", nome: "ano", rotulo: "Ano", valor: f.ano?.toString(), opcoes: lista(opcoes(linhas, "ano")) },
             { tipo: "select", nome: "mes", rotulo: "Mês", valor: f.mes?.toString(), opcoes: opcoesMes },
             { tipo: "select", nome: "base", rotulo: "Base", valor: f.base, opcoes: lista(opcoes(linhas, "base")) },
-            { tipo: "select", nome: "local", rotulo: "Local", valor: f.local, opcoes: lista(opcoes(linhas, "local")) },
+            { tipo: "select", nome: "local", rotulo: "Cliente", valor: f.local, opcoes: lista(opcoes(linhas, "local")) },
             { tipo: "select", nome: "situacao", rotulo: "Situação", valor: f.situacao, opcoes: lista(opcoes(linhas, "situacao")) },
             { tipo: "select", nome: "status", rotulo: "Status", valor: f.status, opcoes: lista(opcoes(linhas, "status")) },
             { tipo: "texto", nome: "vaga", rotulo: "Vaga", valor: f.vaga, placeholder: "Nº da vaga" },

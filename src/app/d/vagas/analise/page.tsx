@@ -55,7 +55,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/an
             { tipo: "select", nome: "ano", rotulo: "Ano", valor: f.ano?.toString(), opcoes: lista(opcoes(linhas, "ano")) },
             { tipo: "select", nome: "mes", rotulo: "Mês", valor: f.mes?.toString(), opcoes: opcoesMes },
             { tipo: "select", nome: "base", rotulo: "Base", valor: f.base, opcoes: lista(opcoes(linhas, "base")) },
-            { tipo: "select", nome: "cliente", rotulo: "Cliente", valor: f.cliente, opcoes: lista(opcoes(linhas, "cliente")) },
+            { tipo: "select", nome: "local", rotulo: "Cliente", valor: f.local, opcoes: lista(opcoes(linhas, "local")) },
             { tipo: "select", nome: "sitPosicao", rotulo: "Situação da posição", valor: f.sitPosicao, opcoes: lista(opcoes(linhas, "sitPosicao")) },
             { tipo: "select", nome: "statusRS", rotulo: "Status R&S", valor: f.statusRS, opcoes: lista(opcoes(linhas, "statusRS")) },
             { tipo: "texto", nome: "vaga", rotulo: "Vaga", valor: f.vaga, placeholder: "Nº da vaga" },
@@ -76,7 +76,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/an
         </p>
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <Secao titulo="Vagas abertas por local (top 10)">
+          <Secao titulo="Vagas abertas por cliente (top 10)">
             <GraficoBarras dados={vagasPor(filtrar(linhas, { ...f, local: undefined }), "local", 10, false)} campo="local" selecionado={f.local} />
           </Secao>
           <Secao titulo="Vagas abertas por etapa">
