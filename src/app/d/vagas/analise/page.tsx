@@ -3,11 +3,12 @@ import { Suspense } from "react";
 import { Cabecalho } from "@/components/cabecalho";
 import { Filtros } from "@/components/filtros";
 import { GraficoBarras, GraficoMensal } from "@/components/graficos";
-import { FiltroCruzado, LinhaFiltro } from "@/components/filtro-cruzado";
+import { CorpoFiltro, FiltroCruzado } from "@/components/filtro-cruzado";
 import { Kpi, Secao } from "@/components/kpi";
 import { abrirDashboard } from "@/lib/dal";
-import { filtrar, filtrosTexto, getVagas, lerFiltros, medidasPosicoes, opcoes, porMes, vagasPor, type Linha } from "@/lib/vagas";
-import { Abas, dataBR, FiltrosAtivos, qs, lista, num, opcoesMes, subtitulo, Tag } from "../comum";
+import { filtrar, filtrosTexto, getVagas, lerFiltros, medidasPosicoes, opcoes, ordenar, porMes, vagasPor, type Filtros as FiltrosVagas, type Linha } from "@/lib/vagas";
+import { Abas, BotaoBaixar, CabecalhoOrdenavel, dataBR, FiltrosAtivos, lerOrdem, lista, num, opcoesMes, qs, subtitulo, Tag } from "../comum";
+import { COLUNAS_POSICOES } from "../colunas";
 
 export const metadata = { title: "Análise de Recrutamento | Portal de Dashboards" };
 
@@ -26,7 +27,10 @@ export default function Page({ searchParams }: PageProps<"/d/vagas/analise">) {
 
 async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/analise">["searchParams"] }) {
   const { dashboard } = await abrirDashboard("vagas");
-  const f = lerFiltros(await searchParams);
+  const sp = await searchParams;
+  const f = lerFiltros(sp);
+  const ordem = lerOrdem(sp);
+  const naUrl = { ...filtrosTexto(f), ordem };
   const { linhas } = await getVagas();
 
   const sel = filtrar(linhas, f);
@@ -42,10 +46,10 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/an
 
       <Abas atual="analise" filtros={f} />
 
-      <FiltroCruzado base="/d/vagas/analise" filtros={filtrosTexto(f)}>
+      <FiltroCruzado base="/d/vagas/analise" filtros={naUrl}>
         <Filtros
-          key={qs(f)}
-          todos={filtrosTexto(f)}
+          key={qs(f, ordem)}
+          todos={naUrl}
           action="/d/vagas/analise"
           campos={[
             { tipo: "select", nome: "ano", rotulo: "Ano", valor: f.ano?.toString(), opcoes: lista(opcoes(linhas, "ano")) },
@@ -80,8 +84,8 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/an
           </Secao>
         </div>
 
-        <Secao titulo="Posições">
-          <TabelaPosicoes linhas={sel} />
+        <Secao titulo="Posições" acao={<BotaoBaixar href={"/d/vagas/exportar" + qs(f, ordem) + (qs(f, ordem) ? "&" : "?") + "tipo=posicoes"} />}>
+          <TabelaPosicoes linhas={sel} filtros={f} ordem={ordem} />
         </Secao>
       </FiltroCruzado>
     </>
@@ -90,22 +94,17 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/an
 
 const LIMITE = 300;
 
-function TabelaPosicoes({ linhas }: { linhas: Linha[] }) {
-  const ordenadas = [...linhas].sort((a, b) => b.data.getTime() - a.data.getTime() || b.vaga - a.vaga || a.posicao - b.posicao);
+function TabelaPosicoes({ linhas, filtros, ordem }: { linhas: Linha[]; filtros: FiltrosVagas; ordem?: string }) {
+  const padrao = [...linhas].sort((a, b) => b.data.getTime() - a.data.getTime() || b.vaga - a.vaga || a.posicao - b.posicao);
+  const ordenadas = ordenar(padrao, ordem, COLUNAS_POSICOES);
   return (
     <div className="max-h-[520px] overflow-auto">
       <table className="w-full text-left text-sm">
-        <thead className="sticky top-0 bg-marca text-xs text-white">
-          <tr>
-            {["Vaga", "Posição", "Cargo", "Local", "Dias", "Status R&S", "Etapa R&S", "Solicitante", "Data"].map((h) => (
-              <th key={h} className="px-3 py-2 font-medium whitespace-nowrap">{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-zinc-100">
+        <CabecalhoOrdenavel colunas={COLUNAS_POSICOES} base="/d/vagas/analise" filtros={filtros} ordem={ordem} />
+        <CorpoFiltro>
           {ordenadas.slice(0, LIMITE).map((l) => (
-            <LinhaFiltro key={`${l.vaga}-${l.posicao}`} valores={{ vaga: String(l.vaga) }}>
-              <td className="px-3 py-1.5 tabular-nums">{l.vaga}</td>
+            <tr key={`${l.vaga}-${l.posicao}`} data-vaga={l.vaga}>
+              <td className="px-3 py-1.5 text-right tabular-nums">{l.vaga}</td>
               <td className="px-3 py-1.5 text-right tabular-nums">{l.posicao}</td>
               <td className="px-3 py-1.5">{l.cargo}</td>
               <td className="px-3 py-1.5">{l.local}</td>
@@ -113,13 +112,13 @@ function TabelaPosicoes({ linhas }: { linhas: Linha[] }) {
               <td className="px-3 py-1.5"><Tag texto={l.statusRS} /></td>
               <td className="px-3 py-1.5">{l.etapaRS}</td>
               <td className="px-3 py-1.5">{l.solicitante ?? "—"}</td>
-              <td className="px-3 py-1.5 whitespace-nowrap tabular-nums">{dataBR(l.data)}</td>
-            </LinhaFiltro>
+              <td className="px-3 py-1.5 text-right whitespace-nowrap tabular-nums">{dataBR(l.data)}</td>
+            </tr>
           ))}
-        </tbody>
+        </CorpoFiltro>
       </table>
       <p className="mt-2 text-xs text-zinc-400">
-        {ordenadas.length > LIMITE ? `Mostrando ${LIMITE} de ${num(ordenadas.length)} posições. Use os filtros pra refinar.` : `${num(ordenadas.length)} posições.`}
+        {ordenadas.length > LIMITE ? `Mostrando ${LIMITE} de ${num(ordenadas.length)} posições. A planilha baixada traz todas.` : `${num(ordenadas.length)} posições.`}
       </p>
     </div>
   );

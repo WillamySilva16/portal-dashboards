@@ -233,3 +233,48 @@ export function vagasPor(ls: Linha[], campo: keyof Linha, limite = 10, agruparRe
   const outrasVagas = new Set(ls.filter((l) => resto.some((r) => r.nome === String(l[campo] ?? "Não informado"))).map((l) => l.vaga));
   return [...lista.slice(0, limite - 1), { nome: `Outros (${resto.length})`, valor: outrasVagas.size }];
 }
+
+// ---------- Tabelas (tela e planilha) ----------
+
+export type VagaTabela = Linha & { diasMax: number | null; posicoes: number };
+
+// Uma linha por vaga (como a tabela do Power BI, que agrupa as posições), mais recentes primeiro
+export function linhasPorVaga(linhas: Linha[]): VagaTabela[] {
+  const porVaga = new Map<number, VagaTabela>();
+  for (const l of linhas) {
+    const atual = porVaga.get(l.vaga);
+    const dias = Math.max(atual?.diasMax ?? -Infinity, l.dias ?? -Infinity);
+    porVaga.set(l.vaga, {
+      ...(atual ?? l),
+      diasMax: Number.isFinite(dias) ? dias : null,
+      posicoes: (atual?.posicoes ?? 0) + 1,
+    });
+  }
+  return [...porVaga.values()].sort((a, b) => b.data.getTime() - a.data.getTime() || b.vaga - a.vaga);
+}
+
+type Valor = string | number | Date | null | undefined;
+
+export type Coluna<T> = {
+  id: string;
+  titulo: string;
+  valor: (x: T) => Valor;
+  numero?: boolean; // alinha à direita e ordena do maior pro menor no 1º clique
+};
+
+// `ordem` vem da URL: "dias" (crescente) ou "-dias" (decrescente). Vazios sempre no fim.
+export function ordenar<T>(itens: T[], ordem: string | undefined, colunas: Coluna<T>[]) {
+  const col = ordem && colunas.find((c) => c.id === ordem.replace(/^-/, ""));
+  if (!col) return itens;
+  const sinal = ordem.startsWith("-") ? -1 : 1;
+  const chave = (v: Valor) => (v instanceof Date ? v.getTime() : v);
+  return [...itens].sort((x, y) => {
+    const a = chave(col.valor(x));
+    const b = chave(col.valor(y));
+    const vazioA = a === null || a === undefined || a === "";
+    const vazioB = b === null || b === undefined || b === "";
+    if (vazioA || vazioB) return Number(vazioA) - Number(vazioB);
+    const r = typeof a === "number" && typeof b === "number" ? a - b : String(a).localeCompare(String(b), "pt-BR", { numeric: true });
+    return r * sinal;
+  });
+}

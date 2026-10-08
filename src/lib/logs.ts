@@ -8,6 +8,7 @@ export const ACOES: Record<AccessAction, string> = {
   LOGIN_DENIED: "Login negado",
   VIEW_DASHBOARD: "Abriu dashboard",
   VIEW_DENIED: "Acesso negado",
+  EXPORT_DASHBOARD: "Baixou planilha",
   LOGOUT: "Saiu",
 };
 

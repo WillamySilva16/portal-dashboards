@@ -20,6 +20,7 @@ enum AccessAction {
   LOGIN_DENIED      // e-mail fora da whitelist ou usuário inativo
   VIEW_DASHBOARD
   VIEW_DENIED       // tentou abrir dashboard sem permissão
+  EXPORT_DASHBOARD  // baixou a planilha de um dashboard
   LOGOUT
 }
 

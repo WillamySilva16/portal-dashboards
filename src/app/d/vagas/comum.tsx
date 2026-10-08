@@ -1,13 +1,16 @@
 import Link from "next/link";
-import { MESES, type Filtros, type Linha } from "@/lib/vagas";
+import { MESES, type Coluna, type Filtros, type Linha } from "@/lib/vagas";
+import { dataBR } from "./colunas";
+
+export { dataBR };
 
 export const num = (n: number) => n.toLocaleString("pt-BR");
-export const dataBR = (d: Date) => d.toLocaleDateString("pt-BR", { timeZone: "UTC" });
 
-// Monta a query string mantendo os filtros ao trocar de aba
-export function qs(f: Filtros) {
+// Monta a query string mantendo os filtros ao trocar de aba (e a ordem da tabela, se tiver)
+export function qs(f: Filtros, ordem?: string) {
   const p = new URLSearchParams();
   for (const [k, v] of Object.entries(f)) if (v !== undefined) p.set(k, String(v));
+  if (ordem) p.set("ordem", ordem);
   const s = p.toString();
   return s ? `?${s}` : "";
 }
@@ -94,5 +97,47 @@ export function FiltrosAtivos({ base, filtros }: { base: string; filtros: Filtro
         Limpar tudo
       </Link>
     </div>
+  );
+}
+
+export function lerOrdem(sp: Record<string, string | string[] | undefined>) {
+  const v = sp.ordem;
+  return typeof v === "string" && v ? v : undefined;
+}
+
+// Cabeçalho de tabela: clicar no título ordena; clicar de novo inverte
+export function CabecalhoOrdenavel<T>({ colunas, base, filtros, ordem }: { colunas: Coluna<T>[]; base: string; filtros: Filtros; ordem?: string }) {
+  return (
+    <thead className="sticky top-0 bg-marca text-xs text-white">
+      <tr>
+        {colunas.map((c) => {
+          const atual = ordem?.replace(/^-/, "") === c.id;
+          const desc = atual ? ordem!.startsWith("-") : false;
+          // 1º clique: números e datas do maior pro menor, texto de A a Z
+          const proxima = atual ? (desc ? c.id : `-${c.id}`) : c.numero ? `-${c.id}` : c.id;
+          return (
+            <th key={c.id} className={`px-3 py-2 font-medium whitespace-nowrap ${c.numero ? "text-right" : ""}`} aria-sort={atual ? (desc ? "descending" : "ascending") : undefined}>
+              <Link href={base + qs(filtros, proxima)} scroll={false} title="Clique pra ordenar" className="inline-flex items-center gap-1 hover:underline">
+                {c.titulo}
+                <span aria-hidden className={atual ? "" : "opacity-30"}>{atual ? (desc ? "▼" : "▲") : "↕"}</span>
+              </Link>
+            </th>
+          );
+        })}
+      </tr>
+    </thead>
+  );
+}
+
+// Botão de baixar a planilha com os filtros e a ordem da tela
+export function BotaoBaixar({ href }: { href: string }) {
+  return (
+    <a
+      href={href}
+      download
+      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-marca ring-1 ring-zinc-300 hover:bg-zinc-50"
+    >
+      <span aria-hidden>⬇</span> Baixar planilha
+    </a>
   );
 }
