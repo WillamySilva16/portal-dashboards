@@ -11,6 +11,7 @@ O site sobe no **mesmo projeto do Railway** onde já está o Postgres.
    | `AUTH_GOOGLE_ID` | o mesmo do `.env` |
    | `AUTH_GOOGLE_SECRET` | o mesmo do `.env` |
    | `AUTH_TRUST_HOST` | `true` |
+| `AUTH_URL` | o endereço do site, sem barra no final (ex.: `https://portal-dashboards-production.up.railway.app`). Sem ela, o login volta pra `localhost:8080` com `error=Configuration`. |
 3. **Domínio:** em *Settings → Networking*, clique em **Generate Domain**. Vai sair algo como `portal-dashboards-production.up.railway.app`.
 4. **Google Cloud:** na credencial OAuth do projeto `portal-dashboards`, adicione:
    - Origens JavaScript autorizadas: `https://SEU-DOMINIO`
