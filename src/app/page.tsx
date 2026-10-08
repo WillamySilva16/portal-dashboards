@@ -1,18 +1,17 @@
+import Link from "next/link";
 import { Suspense } from "react";
-import { signOut } from "@/auth";
-import { getCurrentUser, getMeusDashboards } from "@/lib/dal";
+import { Cabecalho } from "@/components/cabecalho";
+import { getMeusDashboards } from "@/lib/dal";
 
-export default function Home() {
+export default function Home({ searchParams }: PageProps<"/">) {
   return (
-    <div className="flex flex-1 flex-col bg-zinc-50">
-      <header className="flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-4">
-        <h1 className="text-lg font-semibold text-zinc-900">Portal de Dashboards</h1>
-        <Suspense fallback={<span className="text-sm text-zinc-400">…</span>}>
-          <Usuario />
-        </Suspense>
-      </header>
-
+    <div className="flex flex-1 flex-col">
+      <Cabecalho />
       <main className="mx-auto w-full max-w-5xl p-6">
+        <h1 className="mb-4 text-xl font-semibold text-zinc-900">Dashboards</h1>
+        <Suspense>
+          <AvisoNegado searchParams={searchParams} />
+        </Suspense>
         <Suspense fallback={<p className="text-sm text-zinc-500">Carregando dashboards…</p>}>
           <Catalogo />
         </Suspense>
@@ -21,27 +20,13 @@ export default function Home() {
   );
 }
 
-async function Usuario() {
-  const user = await getCurrentUser();
+async function AvisoNegado({ searchParams }: { searchParams: PageProps<"/">["searchParams"] }) {
+  const { negado } = await searchParams;
+  if (!negado) return null;
   return (
-    <div className="flex items-center gap-4 text-sm">
-      <span className="text-zinc-600">
-        {user.name ?? user.email}
-        {user.role === "ADMIN" && (
-          <span className="ml-2 rounded bg-zinc-900 px-1.5 py-0.5 text-xs text-white">admin</span>
-        )}
-      </span>
-      <form
-        action={async () => {
-          "use server";
-          await signOut({ redirectTo: "/login" });
-        }}
-      >
-        <button type="submit" className="text-zinc-500 underline hover:text-zinc-900">
-          Sair
-        </button>
-      </form>
-    </div>
+    <p className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+      Você não tem acesso a esse dashboard. Peça a liberação ao administrador.
+    </p>
   );
 }
 
@@ -59,10 +44,15 @@ async function Catalogo() {
   return (
     <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {dashboards.map((d) => (
-        <li key={d.id} className="rounded-xl bg-white p-5 ring-1 ring-zinc-200">
-          {d.category && <p className="text-xs uppercase tracking-wide text-zinc-400">{d.category}</p>}
-          <h2 className="mt-1 font-medium text-zinc-900">{d.title}</h2>
-          {d.description && <p className="mt-1 text-sm text-zinc-500">{d.description}</p>}
+        <li key={d.id}>
+          <Link
+            href={`/d/${d.slug}`}
+            className="block h-full rounded-xl bg-white p-5 ring-1 ring-zinc-200 transition hover:shadow-md hover:ring-zinc-300"
+          >
+            {d.category && <p className="text-xs tracking-wide text-zinc-400 uppercase">{d.category}</p>}
+            <h2 className="mt-1 font-medium text-zinc-900">{d.title}</h2>
+            {d.description && <p className="mt-1 text-sm text-zinc-500">{d.description}</p>}
+          </Link>
         </li>
       ))}
     </ul>

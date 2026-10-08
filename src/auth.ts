@@ -3,27 +3,8 @@
 // Toda tentativa fica registrada em AccessLog.
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
-import type { AccessAction } from "@/generated/prisma/client";
-
-async function registrarLog(action: AccessAction, email: string, userId?: number) {
-  try {
-    const h = await headers();
-    await prisma.accessLog.create({
-      data: {
-        action,
-        email,
-        userId,
-        ip: h.get("x-forwarded-for")?.split(",")[0].trim() ?? null,
-        userAgent: h.get("user-agent"),
-      },
-    });
-  } catch (e) {
-    // Log nunca pode derrubar o login
-    console.error("Falha ao gravar AccessLog", e);
-  }
-}
+import { registrarLog } from "@/lib/log";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [Google],
@@ -37,7 +18,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       const user = await prisma.user.findUnique({ where: { email } });
       if (!user || !user.active) {
-        await registrarLog("LOGIN_DENIED", email, user?.id);
+        await registrarLog("LOGIN_DENIED", email, { userId: user?.id });
         return false;
       }
 
@@ -48,7 +29,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.name ?? profile?.name ?? null,
         },
       });
-      await registrarLog("LOGIN", email, user.id);
+      await registrarLog("LOGIN", email, { userId: user.id });
       return true;
     },
     // Guarda o id do banco no token pra não depender do e-mail depois
@@ -76,11 +57,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async signOut(message) {
       const token = "token" in message ? message.token : null;
       if (token?.email) {
-        await registrarLog(
-          "LOGOUT",
-          token.email.toLowerCase(),
-          typeof token.userId === "number" ? token.userId : undefined
-        );
+        await registrarLog("LOGOUT", token.email.toLowerCase(), {
+          userId: typeof token.userId === "number" ? token.userId : undefined,
+        });
       }
     },
   },
