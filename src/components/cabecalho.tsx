@@ -20,6 +20,11 @@ async function Usuario() {
   const user = await getCurrentUser();
   return (
     <div className="flex items-center gap-4 text-sm">
+      {user.role === "ADMIN" && (
+        <Link href="/admin" className="text-white/80 hover:text-white">
+          Admin
+        </Link>
+      )}
       <span className="text-white/80">
         {user.name ?? user.email}
         {user.role === "ADMIN" && (

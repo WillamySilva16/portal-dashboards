@@ -90,3 +90,10 @@ export async function abrirDashboard(slug: string) {
 
   return { user, dashboard };
 }
+
+// Páginas de admin: quem não é ADMIN volta pra tela inicial
+export async function getAdmin() {
+  const user = await getCurrentUser();
+  if (user.role !== "ADMIN") redirect("/");
+  return user;
+}
