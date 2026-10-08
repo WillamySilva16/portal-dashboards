@@ -65,3 +65,34 @@ export function Tag({ texto }: { texto: string | null }) {
   };
   return <span className={`rounded px-1.5 py-0.5 text-xs whitespace-nowrap ${cor[texto] ?? "bg-zinc-100 text-zinc-700"}`}>{texto}</span>;
 }
+
+const ROTULOS: Record<string, string> = {
+  ano: "Ano", mes: "Mês", base: "Base", local: "Local", cliente: "Cliente", situacao: "Situação",
+  status: "Status", statusRS: "Status R&S", categoria: "Categoria", etapa: "Etapa", vaga: "Vaga",
+};
+
+// Faixa "Filtros ativos" com um × em cada um, como os chips do Power BI
+export function FiltrosAtivos({ base, filtros }: { base: string; filtros: Filtros }) {
+  const ativos = Object.entries(filtros).filter(([, v]) => v !== undefined) as [keyof Filtros, string | number][];
+  if (!ativos.length) return <p className="text-xs text-zinc-400">Dica: clique numa barra ou numa linha da tabela pra filtrar o dashboard inteiro.</p>;
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-xs">
+      <span className="font-medium text-zinc-500">Filtros ativos:</span>
+      {ativos.map(([k, v]) => (
+        <Link
+          key={k}
+          href={base + qs({ ...filtros, [k]: undefined })}
+          scroll={false}
+          title="Tirar este filtro"
+          className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-blue-900 ring-1 ring-blue-200 hover:bg-blue-100"
+        >
+          {ROTULOS[k] ?? k}: <strong className="font-semibold">{k === "mes" ? MESES[Number(v) - 1] : String(v)}</strong>
+          <span aria-hidden className="text-blue-500">×</span>
+        </Link>
+      ))}
+      <Link href={base} scroll={false} className="text-zinc-500 underline hover:text-zinc-900">
+        Limpar tudo
+      </Link>
+    </div>
+  );
+}

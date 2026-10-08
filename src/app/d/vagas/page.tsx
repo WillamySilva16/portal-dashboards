@@ -3,10 +3,11 @@ import { Suspense } from "react";
 import { Cabecalho } from "@/components/cabecalho";
 import { Filtros } from "@/components/filtros";
 import { GraficoBarras, GraficoMensal } from "@/components/graficos";
+import { FiltroCruzado, LinhaFiltro } from "@/components/filtro-cruzado";
 import { Kpi, Secao } from "@/components/kpi";
 import { abrirDashboard } from "@/lib/dal";
-import { filtrar, getVagas, lerFiltros, linhasMesAnterior, medidasVagas, opcoes, porMes, vagasPor, type Linha } from "@/lib/vagas";
-import { Abas, dataBR, lista, num, opcoesMes, subtitulo, Tag, variacao } from "./comum";
+import { filtrar, filtrosTexto, getVagas, lerFiltros, linhasMesAnterior, medidasVagas, opcoes, porMes, vagasPor, type Linha } from "@/lib/vagas";
+import { Abas, dataBR, FiltrosAtivos, qs, lista, num, opcoesMes, subtitulo, Tag, variacao } from "./comum";
 
 export const metadata = { title: "Vagas | Portal de Dashboards" };
 
@@ -49,43 +50,52 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas">[
 
       <Abas atual="geral" filtros={f} />
 
-      <Filtros
-        action="/d/vagas"
-        campos={[
-          { tipo: "select", nome: "ano", rotulo: "Ano", valor: f.ano?.toString(), opcoes: lista(opcoes(linhas, "ano")) },
-          { tipo: "select", nome: "mes", rotulo: "Mês", valor: f.mes?.toString(), opcoes: opcoesMes },
-          { tipo: "select", nome: "base", rotulo: "Base", valor: f.base, opcoes: lista(opcoes(linhas, "base")) },
-          { tipo: "select", nome: "local", rotulo: "Local", valor: f.local, opcoes: lista(opcoes(linhas, "local")) },
-          { tipo: "select", nome: "situacao", rotulo: "Situação", valor: f.situacao, opcoes: lista(opcoes(linhas, "situacao")) },
-          { tipo: "select", nome: "status", rotulo: "Status", valor: f.status, opcoes: lista(opcoes(linhas, "status")) },
-          { tipo: "texto", nome: "vaga", rotulo: "Vaga", valor: f.vaga, placeholder: "Nº da vaga" },
-        ]}
-      />
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi titulo="Vagas abertas" valor={num(m.abertas)} cor="#2F80ED" variacao={variacao(m.abertas, mAnt?.abertas)} />
-        <Kpi titulo="Vagas concluídas" valor={num(m.concluidas)} cor="#16A085" variacao={variacao(m.concluidas, mAnt?.concluidas)} />
-        <Kpi titulo="Em andamento" valor={num(m.andamento)} cor="#F39C12" variacao={variacao(m.andamento, mAnt?.andamento)} />
-        <Kpi
-          titulo="Tempo médio de fechamento (dias)"
-          valor={m.tempoMedio === null ? "—" : m.tempoMedio.toLocaleString("pt-BR", { maximumFractionDigits: 1, minimumFractionDigits: 1 })}
-          cor="#8E5DE7"
-          variacao={variacao(m.tempoMedio, mAnt === undefined ? undefined : mAnt.tempoMedio, 1)}
+      <FiltroCruzado base="/d/vagas" filtros={filtrosTexto(f)}>
+        <Filtros
+          key={qs(f)}
+          todos={filtrosTexto(f)}
+          action="/d/vagas"
+          campos={[
+            { tipo: "select", nome: "ano", rotulo: "Ano", valor: f.ano?.toString(), opcoes: lista(opcoes(linhas, "ano")) },
+            { tipo: "select", nome: "mes", rotulo: "Mês", valor: f.mes?.toString(), opcoes: opcoesMes },
+            { tipo: "select", nome: "base", rotulo: "Base", valor: f.base, opcoes: lista(opcoes(linhas, "base")) },
+            { tipo: "select", nome: "local", rotulo: "Local", valor: f.local, opcoes: lista(opcoes(linhas, "local")) },
+            { tipo: "select", nome: "situacao", rotulo: "Situação", valor: f.situacao, opcoes: lista(opcoes(linhas, "situacao")) },
+            { tipo: "select", nome: "status", rotulo: "Status", valor: f.status, opcoes: lista(opcoes(linhas, "status")) },
+            { tipo: "texto", nome: "vaga", rotulo: "Vaga", valor: f.vaga, placeholder: "Nº da vaga" },
+          ]}
         />
-      </div>
+        <FiltrosAtivos base="/d/vagas" filtros={f} />
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Secao titulo="Vagas por mês">
-          <GraficoMensal dados={porMes(sel)} />
-        </Secao>
-        <Secao titulo="Vagas abertas por categoria">
-          <GraficoBarras dados={vagasPor(sel, "categoria", 10)} />
-        </Secao>
-      </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Kpi titulo="Vagas abertas" valor={num(m.abertas)} cor="#2F80ED" variacao={variacao(m.abertas, mAnt?.abertas)} />
+          <Kpi titulo="Vagas concluídas" valor={num(m.concluidas)} cor="#16A085" variacao={variacao(m.concluidas, mAnt?.concluidas)} />
+          <Kpi titulo="Em andamento" valor={num(m.andamento)} cor="#F39C12" variacao={variacao(m.andamento, mAnt?.andamento)} />
+          <Kpi
+            titulo="Tempo médio de fechamento (dias)"
+            valor={m.tempoMedio === null ? "—" : m.tempoMedio.toLocaleString("pt-BR", { maximumFractionDigits: 1, minimumFractionDigits: 1 })}
+            cor="#8E5DE7"
+            variacao={variacao(m.tempoMedio, mAnt === undefined ? undefined : mAnt.tempoMedio, 1)}
+          />
+        </div>
 
-      <Secao titulo="Detalhamento das vagas">
-        <TabelaVagas linhas={sel} />
-      </Secao>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Secao titulo="Vagas por mês">
+            <GraficoMensal dados={porMes(f.mes === undefined ? sel : filtrar(linhas, f, true))} ano={f.ano} mes={f.mes} />
+          </Secao>
+          <Secao titulo="Vagas abertas por categoria">
+            <GraficoBarras
+              dados={vagasPor(filtrar(linhas, { ...f, categoria: undefined }), "categoria", 10)}
+              campo="categoria"
+              selecionado={f.categoria}
+            />
+          </Secao>
+        </div>
+
+        <Secao titulo="Detalhamento das vagas">
+          <TabelaVagas linhas={sel} />
+        </Secao>
+      </FiltroCruzado>
     </>
   );
 }
@@ -114,7 +124,7 @@ function TabelaVagas({ linhas }: { linhas: Linha[] }) {
         </thead>
         <tbody className="divide-y divide-zinc-100">
           {vagas.slice(0, LIMITE).map((v) => (
-            <tr key={v.vaga} className="hover:bg-zinc-50">
+            <LinhaFiltro key={v.vaga} valores={{ vaga: String(v.vaga) }}>
               <td className="px-3 py-1.5 whitespace-nowrap tabular-nums">{dataBR(v.data)}</td>
               <td className="px-3 py-1.5 tabular-nums">{v.vaga}</td>
               <td className="px-3 py-1.5">{v.supervisao ?? "—"}</td>
@@ -124,7 +134,7 @@ function TabelaVagas({ linhas }: { linhas: Linha[] }) {
               <td className="px-3 py-1.5 text-right tabular-nums">{v.diasMax ?? "—"}</td>
               <td className="px-3 py-1.5"><Tag texto={v.situacao} /></td>
               <td className="px-3 py-1.5"><Tag texto={v.sla} /></td>
-            </tr>
+            </LinhaFiltro>
           ))}
         </tbody>
       </table>
