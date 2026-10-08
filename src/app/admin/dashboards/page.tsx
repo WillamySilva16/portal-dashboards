@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { getAdmin } from "@/lib/dal";
 import { prisma } from "@/lib/db";
+import { diasAtras } from "@/lib/logs";
 import { liberarDashboard, removerPermissao, salvarDashboard } from "../actions";
 import { botao, botaoLeve, Cartao, Erro, input } from "../ui";
 
@@ -16,7 +17,7 @@ export default function Page({ searchParams }: PageProps<"/admin/dashboards">) {
 
 async function Conteudo() {
   await getAdmin();
-  const desde = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const desde = diasAtras(30);
   const [dashboards, usuarios, setores, views] = await Promise.all([
     prisma.dashboard.findMany({
       orderBy: { title: "asc" },

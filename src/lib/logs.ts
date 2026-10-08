@@ -44,3 +44,5 @@ export function whereLog(f: FiltrosLog): Prisma.AccessLogWhereInput {
     }),
   };
 }
+
+export const diasAtras = (n: number) => new Date(Date.now() - n * 24 * 60 * 60 * 1000);

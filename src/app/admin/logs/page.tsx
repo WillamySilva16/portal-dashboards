@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { getAdmin } from "@/lib/dal";
 import { prisma } from "@/lib/db";
-import { ACOES, lerFiltrosLog, whereLog } from "@/lib/logs";
+import { ACOES, diasAtras, lerFiltrosLog, whereLog } from "@/lib/logs";
 import { botao, botaoLeve, Cartao, dataHora, input, td, th } from "../ui";
 
 const POR_PAGINA = 100;
@@ -30,7 +30,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/admin/logs
   const f = lerFiltrosLog(sp);
   const pagina = Math.max(1, Number(sp.p) || 1);
   const where = whereLog(f);
-  const semana = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const semana = diasAtras(7);
 
   const [logs, total, dashboards, resumo] = await Promise.all([
     prisma.accessLog.findMany({
