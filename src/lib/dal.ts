@@ -53,19 +53,25 @@ export async function getMeusDashboards() {
 
 // Abre um dashboard do catálogo: confere permissão e registra na auditoria.
 // Sem permissão, registra VIEW_DENIED e manda pra tela inicial.
+type Usuario = Awaited<ReturnType<typeof getCurrentUser>>;
+
+async function temPermissao(user: Usuario, dashboardId: number) {
+  if (user.role === "ADMIN") return true;
+  const n = await prisma.dashboardPermission.count({
+    where: {
+      dashboardId,
+      OR: [{ userId: user.id }, ...(user.departmentId ? [{ departmentId: user.departmentId }] : [])],
+    },
+  });
+  return n > 0;
+}
+
 export async function abrirDashboard(slug: string) {
   const user = await getCurrentUser();
   const dashboard = await prisma.dashboard.findUnique({ where: { slug } });
   if (!dashboard || !dashboard.active) notFound();
 
-  const permitido =
-    user.role === "ADMIN" ||
-    (await prisma.dashboardPermission.count({
-      where: {
-        dashboardId: dashboard.id,
-        OR: [{ userId: user.id }, ...(user.departmentId ? [{ departmentId: user.departmentId }] : [])],
-      },
-    })) > 0;
+  const permitido = await temPermissao(user, dashboard.id);
 
   const path = `/d/${slug}`;
   if (!permitido) {
@@ -88,6 +94,20 @@ export async function abrirDashboard(slug: string) {
     await registrarLog("VIEW_DASHBOARD", user.email, { userId: user.id, dashboardId: dashboard.id, path });
   }
 
+  return { user, dashboard };
+}
+
+// Download da planilha de um dashboard: mesma permissão de quem pode abrir,
+// e cada download fica no log. Devolve null se a pessoa não pode.
+export async function exportarDashboard(slug: string, path: string) {
+  const user = await getCurrentUser();
+  const dashboard = await prisma.dashboard.findUnique({ where: { slug } });
+  if (!dashboard || !dashboard.active) return null;
+  if (!(await temPermissao(user, dashboard.id))) {
+    await registrarLog("VIEW_DENIED", user.email, { userId: user.id, dashboardId: dashboard.id, path });
+    return null;
+  }
+  await registrarLog("EXPORT_DASHBOARD", user.email, { userId: user.id, dashboardId: dashboard.id, path });
   return { user, dashboard };
 }
 

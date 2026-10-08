@@ -36,16 +36,20 @@ export function useFiltroCruzado() {
   return use(Ctx);
 }
 
-// Linha de tabela que filtra pelo valor dela ao ser clicada
-export function LinhaFiltro({ valores, children }: { valores: Valores; children: React.ReactNode }) {
+// Corpo de tabela em que clicar numa linha filtra pela vaga dela (lida do
+// data-vaga da linha). Um só componente no navegador, em vez de um por linha.
+export function CorpoFiltro({ children }: { children: React.ReactNode }) {
   const fc = useFiltroCruzado();
   return (
-    <tr
-      onClick={fc ? () => fc.alternar(valores) : undefined}
-      title={fc ? "Clique pra filtrar o dashboard por esta vaga" : undefined}
-      className="cursor-pointer hover:bg-blue-50/60"
+    <tbody
+      className="divide-y divide-zinc-100 [&>tr]:cursor-pointer [&>tr:hover]:bg-blue-50/60"
+      title={fc ? "Clique numa linha pra filtrar o dashboard por aquela vaga" : undefined}
+      onClick={(e) => {
+        const vaga = (e.target as HTMLElement).closest("tr")?.dataset.vaga;
+        if (fc && vaga) fc.alternar({ vaga });
+      }}
     >
       {children}
-    </tr>
+    </tbody>
   );
 }

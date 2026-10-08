@@ -20,10 +20,13 @@ export function Kpi({
   );
 }
 
-export function Secao({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+export function Secao({ titulo, acao, children }: { titulo: string; acao?: React.ReactNode; children: React.ReactNode }) {
   return (
     <section className="rounded-xl bg-white p-4 ring-1 ring-zinc-200">
-      <h2 className="mb-3 text-sm font-semibold text-zinc-700">{titulo}</h2>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h2 className="text-sm font-semibold text-zinc-700">{titulo}</h2>
+        {acao}
+      </div>
       {children}
     </section>
   );

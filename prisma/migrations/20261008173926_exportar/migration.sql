@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "AccessAction" ADD VALUE 'EXPORT_DASHBOARD';

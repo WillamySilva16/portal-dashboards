@@ -1,5 +1,6 @@
 // Exporta o log de acessos (com os filtros da tela) em CSV, pra abrir no Excel.
 import { auth } from "@/auth";
+import { respostaCsv } from "@/lib/csv";
 import { prisma } from "@/lib/db";
 import { ACOES, lerFiltrosLog, whereLog } from "@/lib/logs";
 
@@ -18,25 +19,19 @@ export async function GET(request: Request) {
     include: { dashboard: { select: { title: true } } },
   });
 
-  const esc = (v: unknown) => `"${String(v ?? "").replaceAll('"', '""')}"`;
-  const linhas = [
-    ["Quando", "E-mail", "Ação", "Dashboard", "Caminho", "IP", "Navegador"],
-    ...logs.map((l) => [
-      l.createdAt.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }),
-      l.email,
-      ACOES[l.action],
-      l.dashboard?.title,
-      l.path,
-      l.ip,
-      l.userAgent,
-    ]),
-  ];
-  // ";" e BOM pra o Excel em português abrir certinho
-  const csv = "﻿" + linhas.map((l) => l.map(esc).join(";")).join("\r\n");
-  return new Response(csv, {
-    headers: {
-      "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="log-acessos-${new Date().toISOString().slice(0, 10)}.csv"`,
-    },
-  });
+  return respostaCsv(
+    [
+      ["Quando", "E-mail", "Ação", "Dashboard", "Caminho", "IP", "Navegador"],
+      ...logs.map((l) => [
+        l.createdAt.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }),
+        l.email,
+        ACOES[l.action],
+        l.dashboard?.title,
+        l.path,
+        l.ip,
+        l.userAgent,
+      ]),
+    ],
+    "log-acessos",
+  );
 }
