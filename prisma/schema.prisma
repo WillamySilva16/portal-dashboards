@@ -1,0 +1,96 @@
+// prisma/schema.prisma
+// Banco: Postgres (Railway)
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN   // gerencia usuários, dashboards, vê logs
+  VIEWER  // só acessa o que tem permissão
+}
+
+enum AccessAction {
+  LOGIN
+  LOGIN_DENIED      // e-mail fora da whitelist ou usuário inativo
+  VIEW_DASHBOARD
+  VIEW_DENIED       // tentou abrir dashboard sem permissão
+  LOGOUT
+}
+
+// Setores da empresa (RH, Financeiro, Comercial...)
+model Department {
+  id          Int                   @id @default(autoincrement())
+  name        String                @unique
+  users       User[]
+  permissions DashboardPermission[]
+}
+
+// Whitelist: só entra quem está cadastrado aqui e ativo
+model User {
+  id           Int                   @id @default(autoincrement())
+  email        String                @unique // sempre salvar em minúsculo
+  name         String?
+  role         Role                  @default(VIEWER)
+  active       Boolean               @default(true)
+  departmentId Int?
+  department   Department?           @relation(fields: [departmentId], references: [id])
+  createdAt    DateTime              @default(now())
+  lastLoginAt  DateTime?
+  permissions  DashboardPermission[]
+  logs         AccessLog[]
+}
+
+// Catálogo
+model Dashboard {
+  id          Int                   @id @default(autoincrement())
+  slug        String                @unique // usado na URL: /d/vagas
+  title       String
+  description String?
+  category    String?
+  icon        String?
+  sensitive   Boolean               @default(false) // dado de RH/saúde, etc.
+  active      Boolean               @default(true)
+  createdAt   DateTime              @default(now())
+  permissions DashboardPermission[]
+  logs        AccessLog[]
+}
+
+// Quem pode ver o quê: por usuário OU por departamento
+model DashboardPermission {
+  id           Int         @id @default(autoincrement())
+  dashboardId  Int
+  dashboard    Dashboard   @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+  userId       Int?
+  user         User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  departmentId Int?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  createdAt    DateTime    @default(now())
+
+  @@unique([dashboardId, userId])
+  @@unique([dashboardId, departmentId])
+}
+
+// Auditoria: quem acessou, o que e quando
+model AccessLog {
+  id          BigInt       @id @default(autoincrement())
+  userId      Int?         // nulo quando o e-mail nem existe na whitelist
+  user        User?        @relation(fields: [userId], references: [id])
+  email       String       // guarda o e-mail tentado, mesmo sem usuário
+  dashboardId Int?
+  dashboard   Dashboard?   @relation(fields: [dashboardId], references: [id])
+  action      AccessAction
+  path        String?
+  ip          String?
+  userAgent   String?
+  createdAt   DateTime     @default(now())
+
+  @@index([userId, createdAt])
+  @@index([dashboardId, createdAt])
+  @@index([createdAt])
+}
