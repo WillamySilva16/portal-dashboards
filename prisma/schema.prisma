@@ -94,3 +94,39 @@ model AccessLog {
   @@index([dashboardId, createdAt])
   @@index([createdAt])
 }
+
+// ---------------------------------------------------------------
+// Dados dos dashboards
+// ---------------------------------------------------------------
+
+// Dashboard de Vagas (R&S). Uma linha por POSIÇÃO de cada solicitação:
+// a vaga 100 com 3 posições vira 3 linhas. QtdSolicitada/QtdAprovada só
+// vêm preenchidas na posição 1, pra não multiplicar os totais.
+// Quem preenche é o robô (robo/atualizar_vagas.py), que apaga e
+// regrava a tabela inteira a cada execução.
+model VagaPosicao {
+  id            Int       @id @default(autoincrement())
+  solicitacao   Int
+  vaga          Int
+  posicao       Int
+  status        String?   // status da vaga no sistema (CONCLUÍDO, CANCELA, ENVIA SELEÇÃO...)
+  data          DateTime  @db.Date // abertura
+  fechamento    DateTime?
+  sla           String?
+  solicitante   String?
+  cargo         String?
+  categoria     String?
+  cliente       String?
+  local         String?
+  segmento      String?
+  supervisao    String?
+  base          String?
+  qtdSolicitada Int?
+  qtdAprovada   Int?
+  fase          String?
+  situacaoFase  String?
+  importadoEm   DateTime  @default(now())
+
+  @@index([data])
+  @@index([vaga])
+}
