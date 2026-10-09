@@ -2,6 +2,7 @@
 // Barra de filtros: um <form method="get"> que se envia sozinho a cada mudança.
 // Os filtros ficam na URL, então dá pra compartilhar o link já filtrado.
 import Form from "next/form";
+import { useFiltroCruzado } from "./filtro-cruzado";
 
 export type CampoFiltro =
   | { tipo: "select"; nome: string; rotulo: string; valor?: string; opcoes: { valor: string; texto: string }[] }
@@ -26,13 +27,28 @@ export function Filtros({
   const nomes = new Set(campos.map((c) => c.nome));
   const escondidos = Object.entries(todos).filter(([k, v]) => v && !nomes.has(k));
   const algumAtivo = campos.some((c) => c.valor) || escondidos.length > 0;
+  const fc = useFiltroCruzado();
+
+  // Dentro do painel, troca de filtro navega sem recarregar e mostra "Atualizando…"
+  function enviar(form: HTMLFormElement) {
+    if (!fc) return form.requestSubmit();
+    const p = new URLSearchParams();
+    for (const [k, v] of new FormData(form)) if (typeof v === "string" && v.trim()) p.set(k, v.trim());
+    const s = p.toString();
+    fc.navegar(s ? `${action}?${s}` : action);
+  }
   return (
     <div className="cartao p-4">
     <Form
       action={action}
       onChange={(e) => {
         const alvo = e.target as HTMLElement;
-        if (alvo.tagName === "SELECT" || (alvo as HTMLInputElement).type === "date") e.currentTarget.requestSubmit();
+        if (alvo.tagName === "SELECT" || (alvo as HTMLInputElement).type === "date") enviar(e.currentTarget);
+      }}
+      onSubmit={(e) => {
+        if (!fc) return;
+        e.preventDefault();
+        enviar(e.currentTarget);
       }}
       className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] items-end gap-3"
     >

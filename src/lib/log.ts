@@ -8,10 +8,11 @@ import type { AccessAction } from "@/generated/prisma/client";
 export async function registrarLog(
   action: AccessAction,
   email: string,
-  extra: { userId?: number; dashboardId?: number; path?: string } = {}
+  extra: { userId?: number; dashboardId?: number; path?: string } = {},
+  cabecalhos?: Headers // já lidos antes, quando o log é gravado depois da resposta (after)
 ) {
   try {
-    const h = await headers();
+    const h = cabecalhos ?? (await headers());
     await prisma.accessLog.create({
       data: {
         action,
