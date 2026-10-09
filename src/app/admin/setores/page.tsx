@@ -36,8 +36,8 @@ async function Conteudo() {
         {setores.length === 0 ? (
           <p className="text-sm text-zinc-500">Nenhum setor cadastrado.</p>
         ) : (
-          <table className="w-full text-left text-sm">
-            <thead className="bg-marca text-xs text-white">
+          <table className="w-full overflow-hidden rounded-xl text-left text-sm ring-1 ring-zinc-200">
+            <thead className="cabeca-tabela">
               <tr>
                 <th className={th}>Setor</th>
                 <th className={th}>Pessoas</th>

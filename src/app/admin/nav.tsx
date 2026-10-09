@@ -12,13 +12,13 @@ const ABAS = [
 export function NavAdmin() {
   const path = usePathname();
   return (
-    <nav className="flex flex-wrap gap-6 border-b border-zinc-200">
+    <nav className="cartao inline-flex flex-wrap gap-1 p-1">
       {ABAS.map(([href, texto]) => (
         <Link
           key={href}
           href={href}
-          className={`border-b-2 px-1 pb-2 text-sm font-medium ${
-            path.startsWith(href) ? "border-marca text-zinc-900" : "border-transparent text-zinc-500 hover:text-zinc-900"
+          className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition ${
+            path.startsWith(href) ? "bg-marca text-white shadow-sm" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
           }`}
         >
           {texto}

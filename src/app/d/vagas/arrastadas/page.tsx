@@ -25,7 +25,7 @@ import {
   type Filtros as FiltrosVagas,
   type Linha,
 } from "@/lib/vagas";
-import { Abas, BotaoBaixar, CabecalhoOrdenavel, dataBR, FiltrosAtivos, PeriodoRapido, lerOrdem, lista, num, opcoesMes, qs, Tag } from "../comum";
+import { Abas, BotaoBaixar, CabecalhoOrdenavel, dataBR, FiltrosAtivos, Topo, PeriodoRapido, lerOrdem, lista, num, opcoesMes, qs, Tag } from "../comum";
 import { COLUNAS_ARRASTADAS, diasEmAberto } from "../colunas";
 
 export const metadata = { title: "Vagas arrastadas | Portal de Dashboards" };
@@ -34,7 +34,7 @@ export default function Page({ searchParams }: PageProps<"/d/vagas/arrastadas">)
   return (
     <div className="flex flex-1 flex-col">
       <Cabecalho />
-      <main className="mx-auto w-full max-w-7xl space-y-4 p-6">
+      <main className="mx-auto w-full max-w-[1600px] space-y-5 px-6 py-8">
         <Suspense fallback={<p className="text-sm text-zinc-500">Carregando…</p>}>
           <Conteudo searchParams={searchParams} />
         </Suspense>
@@ -49,7 +49,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/ar
   const f = lerFiltros(sp);
   const ordem = lerOrdem(sp);
   const naUrl = { ...filtrosTexto(f), ordem };
-  const { linhas } = await getVagas();
+  const { linhas, atualizadoEm } = await getVagas();
 
   // Aqui ano/mês não filtram a abertura: escolhem o mês de referência
   const ref = mesReferencia(f);
@@ -59,12 +59,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/ar
 
   return (
     <>
-      <div>
-        <h1 className="text-xl font-semibold text-zinc-900">{dashboard.title}</h1>
-        <p className="text-sm text-zinc-500">
-          Vagas abertas antes de 1º de {nomeRef} e que ainda não estavam fechadas nesse dia
-        </p>
-      </div>
+      <Topo titulo={dashboard.title} subtitulo={`Vagas abertas antes de 1º de ${nomeRef} e que ainda não estavam fechadas nesse dia`} atualizadoEm={atualizadoEm} />
 
       <Abas atual="arrastadas" filtros={f} />
 
@@ -82,11 +77,12 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/ar
             { tipo: "select", nome: "local", rotulo: "Cliente", valor: f.local, opcoes: lista(opcoes(linhas, "local")) },
             { tipo: "texto", nome: "vaga", rotulo: "Vaga", valor: f.vaga, placeholder: "Nº da vaga" },
           ]}
-        />
-        <PeriodoRapido base="/d/vagas/arrastadas" filtros={f} />
-        <FiltrosAtivos base="/d/vagas/arrastadas" filtros={f} />
+        >
+          <PeriodoRapido base="/d/vagas/arrastadas" filtros={f} />
+          <FiltrosAtivos base="/d/vagas/arrastadas" filtros={f} />
+        </Filtros>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <Kpi titulo="Vagas arrastadas" valor={num(m.arrastadas)} cor="#2F80ED" variacao={`Pra ${nomeRef}`} />
           <Kpi
             titulo="Ainda abertas hoje"
@@ -108,7 +104,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/ar
           />
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-5 lg:grid-cols-2">
           <Secao titulo="Vagas arrastadas mês a mês">
             <GraficoMensal
               dados={arrastadasPorMes(filtrar(linhas, f, true), ref.inicio)}
@@ -156,26 +152,26 @@ function TabelaArrastadas({ linhas, filtros, ordem }: { linhas: Linha[]; filtros
   // Padrão: as mais antigas (mais tempo em aberto) primeiro
   const vagas = ordenar(linhasPorVaga(linhas).reverse(), ordem, COLUNAS_ARRASTADAS);
   return (
-    <div className="max-h-[520px] overflow-auto">
-      <table className="w-full text-left text-sm">
+    <div className="max-h-[560px] overflow-auto rounded-xl ring-1 ring-zinc-200">
+      <table className="tabela w-full text-left text-[13px] text-zinc-700">
         <CabecalhoOrdenavel colunas={COLUNAS_ARRASTADAS} base="/d/vagas/arrastadas" filtros={filtros} ordem={ordem} />
         <CorpoFiltro>
           {vagas.slice(0, LIMITE).map((v) => (
             <tr key={v.vaga} data-vaga={v.vaga}>
-              <td className="px-3 py-1.5 text-right whitespace-nowrap tabular-nums">{dataBR(v.data)}</td>
-              <td className="px-3 py-1.5 text-right tabular-nums">{v.vaga}</td>
-              <td className="px-3 py-1.5">{v.supervisao ?? "—"}</td>
-              <td className="px-3 py-1.5">{v.cargo}</td>
-              <td className="px-3 py-1.5">{v.local}</td>
-              <td className="px-3 py-1.5 whitespace-nowrap">{v.base ?? "—"}</td>
-              <td className="px-3 py-1.5 text-right tabular-nums">{v.pendentes}</td>
-              <td className="px-3 py-1.5 text-right tabular-nums">{diasEmAberto(v, hoje) ?? "—"}</td>
-              <td className="px-3 py-1.5"><Tag texto={v.situacao} /></td>
+              <td className="px-3 py-2 text-right whitespace-nowrap tabular-nums">{dataBR(v.data)}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{v.vaga}</td>
+              <td className="px-3 py-2">{v.supervisao ?? "—"}</td>
+              <td className="px-3 py-2">{v.cargo}</td>
+              <td className="px-3 py-2">{v.local}</td>
+              <td className="px-3 py-2 whitespace-nowrap">{v.base ?? "—"}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{v.pendentes}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{diasEmAberto(v, hoje) ?? "—"}</td>
+              <td className="px-3 py-2"><Tag texto={v.situacao} /></td>
             </tr>
           ))}
         </CorpoFiltro>
       </table>
-      <p className="mt-2 text-xs text-zinc-400">
+      <p className="sticky left-0 border-t border-zinc-100 bg-white px-3 py-2 text-xs text-zinc-400">
         {vagas.length > LIMITE
           ? `Mostrando ${LIMITE} de ${num(vagas.length)} vagas. A planilha baixada traz todas.`
           : `${num(vagas.length)} vagas.`}

@@ -53,7 +53,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/admin/logs
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {(Object.keys(ACOES) as (keyof typeof ACOES)[]).map((a) => (
-          <div key={a} className="rounded-xl bg-white p-3 ring-1 ring-zinc-200">
+          <div key={a} className="cartao p-4">
             <p className="text-xs text-zinc-500">{ACOES[a]} · 7 dias</p>
             <p className="text-2xl font-semibold text-zinc-900 tabular-nums">{(resumoPor.get(a) ?? 0).toLocaleString("pt-BR")}</p>
           </div>
@@ -98,9 +98,9 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/admin/logs
       </Cartao>
 
       <Cartao titulo={`${total.toLocaleString("pt-BR")} registros`}>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-xl ring-1 ring-zinc-200">
           <table className="w-full text-left text-sm">
-            <thead className="bg-marca text-xs text-white">
+            <thead className="cabeca-tabela">
               <tr>
                 <th className={th}>Quando</th>
                 <th className={th}>E-mail</th>
