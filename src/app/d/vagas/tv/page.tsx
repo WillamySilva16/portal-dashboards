@@ -1,28 +1,32 @@
-// Dashboard de Vagas: modo TV. Tela cheia, sem filtros, números grandes,
-// atualiza sozinha a cada 5 minutos.
+// Dashboard de Vagas: modo TV. Tela cheia, números grandes, atualiza sozinha
+// a cada 5 minutos. Sem barra de filtros: usa os que vierem no link
+// (o "Modo TV" das abas leva os filtros escolhidos, ex.: período de abertura).
 import { Suspense } from "react";
 import { abrirDashboard } from "@/lib/dal";
-import { getVagas, hojeUTC, linhasPorVaga, MESES, type Linha } from "@/lib/vagas";
-import { num } from "../comum";
+import { filtrar, getVagas, hojeUTC, lerFiltros, linhasPorVaga, MESES, type Linha } from "@/lib/vagas";
+import { num, periodoTexto } from "../comum";
 import { Atualizar } from "./atualizar";
 
 export const metadata = { title: "Vagas na TV | Portal de Dashboards" };
 
 const DIA = 86_400_000;
 
-export default function Page() {
+export default function Page({ searchParams }: PageProps<"/d/vagas/tv">) {
   return (
     <main className="flex min-h-screen flex-1 flex-col gap-[2vh] bg-[#0f1b2a] p-[3vh] text-white">
       <Suspense fallback={<p className="text-2xl text-white/50">Carregando…</p>}>
-        <Conteudo />
+        <Conteudo searchParams={searchParams} />
       </Suspense>
     </main>
   );
 }
 
-async function Conteudo() {
+async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/tv">["searchParams"] }) {
   await abrirDashboard("vagas");
-  const { linhas, atualizadoEm } = await getVagas();
+  const f = lerFiltros(await searchParams);
+  const { linhas: todas, atualizadoEm } = await getVagas();
+  const linhas = filtrar(todas, f);
+  const periodo = periodoTexto(f);
 
   const hoje = hojeUTC();
   const d = new Date(hoje);
@@ -42,7 +46,10 @@ async function Conteudo() {
     <>
       <header className="flex items-end justify-between gap-6">
         <div>
-          <h1 className="text-[4.5vh] leading-tight font-semibold">Vagas em aberto</h1>
+          <h1 className="text-[4.5vh] leading-tight font-semibold">
+            Vagas em aberto
+            {periodo && <span className="ml-[1.5vh] align-middle text-[2.6vh] font-medium text-[#f5a524]">{periodo}</span>}
+          </h1>
           <p className="text-[2vh] text-white/60">
             <Atualizar />
           </p>
@@ -58,7 +65,11 @@ async function Conteudo() {
         <Numero titulo="Vagas abertas" valor={andamento.length} cor="#4c9be8" nota={outras ? `+ ${num(outras)} em outra situação` : "Status Envia Seleção"} />
         <Numero titulo="Posições abertas" valor={pendentes.length} cor="#f5a524" nota="Pessoas que ainda faltam contratar" />
         <Numero titulo="Arrastadas" valor={arrastadas} cor="#a27cf0" nota={`Das vagas abertas, vindas de antes de ${nomeMes}`} />
-        <Numero titulo={`Em ${nomeMes}`} valor={abertasMes} cor="#2fc192" nota={`vagas novas · ${num(concluidasMes)} concluídas`} />
+        {periodo ? (
+          <Numero titulo="No período" valor={vagas.length} cor="#2fc192" nota={`vagas abertas · ${num(vagas.filter((v) => v.situacao === "Concluída").length)} já concluídas`} />
+        ) : (
+          <Numero titulo={`Em ${nomeMes}`} valor={abertasMes} cor="#2fc192" nota={`vagas novas · ${num(concluidasMes)} concluídas`} />
+        )}
       </div>
 
       <div className="grid min-h-0 flex-1 grid-cols-2 gap-[2vh]">

@@ -5,7 +5,8 @@ import Form from "next/form";
 
 export type CampoFiltro =
   | { tipo: "select"; nome: string; rotulo: string; valor?: string; opcoes: { valor: string; texto: string }[] }
-  | { tipo: "texto"; nome: string; rotulo: string; valor?: string; placeholder?: string };
+  | { tipo: "texto"; nome: string; rotulo: string; valor?: string; placeholder?: string }
+  | { tipo: "data"; nome: string; rotulo: string; valor?: string };
 
 // `todos` são todos os filtros ativos da página: os que não têm campo aqui
 // (ex.: categoria, escolhida clicando no gráfico) vão escondidos no form,
@@ -18,7 +19,8 @@ export function Filtros({ action, campos, todos = {} }: { action: string; campos
     <Form
       action={action}
       onChange={(e) => {
-        if ((e.target as HTMLElement).tagName === "SELECT") e.currentTarget.requestSubmit();
+        const alvo = e.target as HTMLElement;
+        if (alvo.tagName === "SELECT" || (alvo as HTMLInputElement).type === "date") e.currentTarget.requestSubmit();
       }}
       className="flex flex-wrap items-end gap-3"
     >
@@ -41,6 +43,13 @@ export function Filtros({ action, campos, todos = {} }: { action: string; campos
                 </option>
               ))}
             </select>
+          ) : c.tipo === "data" ? (
+            <input
+              type="date"
+              name={c.nome}
+              defaultValue={c.valor ?? ""}
+              className="h-9 rounded-lg border border-zinc-300 bg-white px-2 text-sm text-zinc-900"
+            />
           ) : (
             <input
               name={c.nome}
