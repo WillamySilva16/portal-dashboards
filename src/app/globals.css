@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8f9fb;
+  --background: #f3f5f8;
   --foreground: #1f2430;
   /* Cores das séries dos gráficos (validadas pra daltonismo) */
   --serie-1: #2a78d6; /* azul: abertas */
@@ -27,4 +27,27 @@ body {
 /* Sem o contorno preto que o navegador põe no gráfico depois do clique */
 .recharts-wrapper *:focus {
   outline: none;
+}
+
+/* Peças visuais comuns do portal */
+@layer components {
+  .cartao {
+    @apply rounded-2xl bg-white ring-1 ring-zinc-200/80;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.03);
+  }
+  .campo {
+    @apply h-9 rounded-lg border border-zinc-300 bg-white px-2.5 text-sm text-zinc-900 transition outline-none;
+    @apply focus:border-[#2a78d6] focus:ring-3 focus:ring-[#2a78d6]/15;
+  }
+  .rotulo {
+    @apply text-[11px] font-semibold tracking-wide text-zinc-500 uppercase;
+  }
+  /* Tabelas de dados: uma linha por registro, texto longo cortado com "…" */
+  .tabela td {
+    @apply max-w-44 truncate whitespace-nowrap;
+  }
+  .cabeca-tabela {
+    @apply sticky top-0 z-[1] bg-zinc-50 text-[11px] tracking-wide text-zinc-500 uppercase;
+    box-shadow: inset 0 -1px 0 var(--color-zinc-200);
+  }
 }

@@ -7,7 +7,7 @@ import { CorpoFiltro, FiltroCruzado } from "@/components/filtro-cruzado";
 import { Kpi, Secao } from "@/components/kpi";
 import { abrirDashboard } from "@/lib/dal";
 import { filtrar, filtrosTexto, getVagas, lerFiltros, linhasMesAnterior, linhasPorVaga, medidasVagas, opcoes, ordenar, porMes, vagasPor, type Filtros as FiltrosVagas, type Linha } from "@/lib/vagas";
-import { Abas, BotaoBaixar, CabecalhoOrdenavel, dataBR, FiltrosAtivos, PeriodoRapido, lerOrdem, lista, num, opcoesMes, qs, subtitulo, Tag, variacao } from "./comum";
+import { Abas, BotaoBaixar, CabecalhoOrdenavel, dataBR, FiltrosAtivos, Topo, PeriodoRapido, lerOrdem, lista, num, opcoesMes, qs, subtitulo, Tag, variacao } from "./comum";
 import { COLUNAS_VAGAS } from "./colunas";
 
 export const metadata = { title: "Vagas | Portal de Dashboards" };
@@ -16,7 +16,7 @@ export default function Page({ searchParams }: PageProps<"/d/vagas">) {
   return (
     <div className="flex flex-1 flex-col">
       <Cabecalho />
-      <main className="mx-auto w-full max-w-7xl space-y-4 p-6">
+      <main className="mx-auto w-full max-w-[1600px] space-y-5 px-6 py-8">
         <Suspense fallback={<p className="text-sm text-zinc-500">Carregando…</p>}>
           <Conteudo searchParams={searchParams} />
         </Suspense>
@@ -40,17 +40,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas">[
 
   return (
     <>
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <div>
-          <h1 className="text-xl font-semibold text-zinc-900">{dashboard.title}</h1>
-          <p className="text-sm text-zinc-500">{subtitulo(f, linhas)}</p>
-        </div>
-        {atualizadoEm && (
-          <p className="text-xs text-zinc-400">
-            Atualizado em {atualizadoEm.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
-          </p>
-        )}
-      </div>
+      <Topo titulo={dashboard.title} subtitulo={subtitulo(f, linhas)} atualizadoEm={atualizadoEm} />
 
       <Abas atual="geral" filtros={f} />
 
@@ -70,11 +60,12 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas">[
             { tipo: "select", nome: "status", rotulo: "Status", valor: f.status, opcoes: lista(opcoes(linhas, "status")) },
             { tipo: "texto", nome: "vaga", rotulo: "Vaga", valor: f.vaga, placeholder: "Nº da vaga" },
           ]}
-        />
-        <PeriodoRapido base="/d/vagas" filtros={f} />
-        <FiltrosAtivos base="/d/vagas" filtros={f} />
+        >
+          <PeriodoRapido base="/d/vagas" filtros={f} />
+          <FiltrosAtivos base="/d/vagas" filtros={f} />
+        </Filtros>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
           <Kpi titulo="Vagas abertas" valor={num(m.abertas)} cor="#2F80ED" variacao={variacao(m.abertas, mAnt?.abertas)} />
           <Kpi titulo="Vagas concluídas" valor={num(m.concluidas)} cor="#16A085" variacao={variacao(m.concluidas, mAnt?.concluidas)} />
           <Kpi titulo="Em andamento" valor={num(m.andamento)} cor="#F39C12" variacao={variacao(m.andamento, mAnt?.andamento)} />
@@ -92,7 +83,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas">[
           </p>
         )}
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-5 lg:grid-cols-2">
           <Secao titulo="Vagas por mês">
             <GraficoMensal dados={porMes(f.mes === undefined ? sel : filtrar(linhas, f, true))} ano={f.ano} mes={f.mes} />
           </Secao>
@@ -119,29 +110,29 @@ function TabelaVagas({ linhas, filtros, ordem }: { linhas: Linha[]; filtros: Fil
   const vagas = ordenar(linhasPorVaga(linhas), ordem, COLUNAS_VAGAS);
 
   return (
-    <div className="max-h-[520px] overflow-auto">
-      <table className="w-full text-left text-sm">
+    <div className="max-h-[560px] overflow-auto rounded-xl ring-1 ring-zinc-200">
+      <table className="tabela w-full text-left text-[13px] text-zinc-700">
         <CabecalhoOrdenavel colunas={COLUNAS_VAGAS} base="/d/vagas" filtros={filtros} ordem={ordem} />
         <CorpoFiltro>
           {vagas.slice(0, LIMITE).map((v) => (
             <tr key={v.vaga} data-vaga={v.vaga}>
-              <td className="px-3 py-1.5 text-right whitespace-nowrap tabular-nums">{dataBR(v.data)}</td>
-              <td className="px-3 py-1.5 text-right tabular-nums">{v.vaga}</td>
-              <td className="px-3 py-1.5">{v.supervisao ?? "—"}</td>
-              <td className="px-3 py-1.5">{v.cargo}</td>
-              <td className="px-3 py-1.5">{v.local}</td>
-              <td className="px-3 py-1.5 whitespace-nowrap">{v.base ?? "—"}</td>
-              <td className="px-3 py-1.5 text-right tabular-nums">{v.posicoes}</td>
-              <td className="px-3 py-1.5 text-right tabular-nums">{v.fechadas}</td>
-              <td className={`px-3 py-1.5 text-right tabular-nums ${v.pendentes ? "font-semibold text-amber-700" : ""}`}>{v.pendentes}</td>
-              <td className="px-3 py-1.5 text-right tabular-nums">{v.diasMax ?? "—"}</td>
-              <td className="px-3 py-1.5"><Tag texto={v.situacao} /></td>
-              <td className="px-3 py-1.5"><Tag texto={v.sla} /></td>
+              <td className="px-3 py-2 text-right whitespace-nowrap tabular-nums">{dataBR(v.data)}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{v.vaga}</td>
+              <td className="px-3 py-2">{v.supervisao ?? "—"}</td>
+              <td className="px-3 py-2">{v.cargo}</td>
+              <td className="px-3 py-2">{v.local}</td>
+              <td className="px-3 py-2 whitespace-nowrap">{v.base ?? "—"}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{v.posicoes}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{v.fechadas}</td>
+              <td className={`px-3 py-2 text-right tabular-nums ${v.pendentes ? "font-semibold text-amber-700" : ""}`}>{v.pendentes}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{v.diasMax ?? "—"}</td>
+              <td className="px-3 py-2"><Tag texto={v.situacao} /></td>
+              <td className="px-3 py-2"><Tag texto={v.sla} /></td>
             </tr>
           ))}
         </CorpoFiltro>
       </table>
-      <p className="mt-2 text-xs text-zinc-400">
+      <p className="sticky left-0 border-t border-zinc-100 bg-white px-3 py-2 text-xs text-zinc-400">
         {vagas.length > LIMITE
           ? `Mostrando ${LIMITE} de ${num(vagas.length)} vagas. A planilha baixada traz todas.`
           : `${num(vagas.length)} vagas.`}

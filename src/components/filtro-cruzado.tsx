@@ -25,7 +25,7 @@ export function FiltroCruzado({ base, filtros, children }: { base: string; filtr
 
   return (
     <Ctx value={{ alternar }}>
-      <div aria-busy={pendente} className={`space-y-4 transition-opacity ${pendente ? "opacity-60" : ""}`}>
+      <div aria-busy={pendente} className={`space-y-5 transition-opacity ${pendente ? "opacity-60" : ""}`}>
         {children}
       </div>
     </Ctx>

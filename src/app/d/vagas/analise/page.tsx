@@ -7,7 +7,7 @@ import { CorpoFiltro, FiltroCruzado } from "@/components/filtro-cruzado";
 import { Kpi, Secao } from "@/components/kpi";
 import { abrirDashboard } from "@/lib/dal";
 import { filtrar, filtrosTexto, getVagas, lerFiltros, medidasPosicoes, opcoes, ordenar, porMes, vagasPor, type Filtros as FiltrosVagas, type Linha } from "@/lib/vagas";
-import { Abas, BotaoBaixar, CabecalhoOrdenavel, dataBR, FiltrosAtivos, PeriodoRapido, lerOrdem, lista, num, opcoesMes, qs, subtitulo, Tag } from "../comum";
+import { Abas, BotaoBaixar, CabecalhoOrdenavel, dataBR, FiltrosAtivos, Topo, PeriodoRapido, lerOrdem, lista, num, opcoesMes, qs, subtitulo, Tag } from "../comum";
 import { COLUNAS_POSICOES } from "../colunas";
 
 export const metadata = { title: "Análise de Recrutamento | Portal de Dashboards" };
@@ -16,7 +16,7 @@ export default function Page({ searchParams }: PageProps<"/d/vagas/analise">) {
   return (
     <div className="flex flex-1 flex-col">
       <Cabecalho />
-      <main className="mx-auto w-full max-w-7xl space-y-4 p-6">
+      <main className="mx-auto w-full max-w-[1600px] space-y-5 px-6 py-8">
         <Suspense fallback={<p className="text-sm text-zinc-500">Carregando…</p>}>
           <Conteudo searchParams={searchParams} />
         </Suspense>
@@ -31,7 +31,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/an
   const f = lerFiltros(sp);
   const ordem = lerOrdem(sp);
   const naUrl = { ...filtrosTexto(f), ordem };
-  const { linhas } = await getVagas();
+  const { linhas, atualizadoEm } = await getVagas();
 
   const sel = filtrar(linhas, f);
   const m = medidasPosicoes(sel);
@@ -39,10 +39,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/an
 
   return (
     <>
-      <div>
-        <h1 className="text-xl font-semibold text-zinc-900">{dashboard.title}</h1>
-        <p className="text-sm text-zinc-500">{subtitulo(f, linhas)}</p>
-      </div>
+      <Topo titulo={dashboard.title} subtitulo={subtitulo(f, linhas)} atualizadoEm={atualizadoEm} />
 
       <Abas atual="analise" filtros={f} />
 
@@ -62,11 +59,12 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/an
             { tipo: "select", nome: "statusRS", rotulo: "Status R&S", valor: f.statusRS, opcoes: lista(opcoes(linhas, "statusRS")) },
             { tipo: "texto", nome: "vaga", rotulo: "Vaga", valor: f.vaga, placeholder: "Nº da vaga" },
           ]}
-        />
-        <PeriodoRapido base="/d/vagas/analise" filtros={f} />
-        <FiltrosAtivos base="/d/vagas/analise" filtros={f} />
+        >
+          <PeriodoRapido base="/d/vagas/analise" filtros={f} />
+          <FiltrosAtivos base="/d/vagas/analise" filtros={f} />
+        </Filtros>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
           <Kpi titulo="Posições solicitadas" valor={num(m.solicitadas)} cor="#2F80ED" />
           <Kpi titulo="Fechadas" valor={num(m.fechadas)} cor="#16A085" variacao={pct(m.fechadas) ?? "Candidato aprovado"} />
           <Kpi titulo="Pendentes" valor={num(m.pendentes)} cor="#F39C12" variacao={pct(m.pendentes)} />
@@ -78,7 +76,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/an
           {m.naoPreenchidas > 0 && ` + ${num(m.naoPreenchidas)} não preenchidas (vaga concluída sem aprovado nessa posição).`}
         </p>
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-5 lg:grid-cols-2">
           <Secao titulo="Vagas abertas por cliente (top 10)">
             <GraficoBarras dados={vagasPor(filtrar(linhas, { ...f, local: undefined }), "local", 10, false)} campo="local" selecionado={f.local} />
           </Secao>
@@ -107,27 +105,27 @@ function TabelaPosicoes({ linhas, filtros, ordem }: { linhas: Linha[]; filtros: 
   const padrao = [...linhas].sort((a, b) => b.data.getTime() - a.data.getTime() || b.vaga - a.vaga || a.posicao - b.posicao);
   const ordenadas = ordenar(padrao, ordem, COLUNAS_POSICOES);
   return (
-    <div className="max-h-[520px] overflow-auto">
-      <table className="w-full text-left text-sm">
+    <div className="max-h-[560px] overflow-auto rounded-xl ring-1 ring-zinc-200">
+      <table className="tabela w-full text-left text-[13px] text-zinc-700">
         <CabecalhoOrdenavel colunas={COLUNAS_POSICOES} base="/d/vagas/analise" filtros={filtros} ordem={ordem} />
         <CorpoFiltro>
           {ordenadas.slice(0, LIMITE).map((l) => (
             <tr key={`${l.vaga}-${l.posicao}`} data-vaga={l.vaga}>
-              <td className="px-3 py-1.5 text-right tabular-nums">{l.vaga}</td>
-              <td className="px-3 py-1.5 text-right tabular-nums">{l.posicao}</td>
-              <td className="px-3 py-1.5">{l.cargo}</td>
-              <td className="px-3 py-1.5">{l.local}</td>
-              <td className="px-3 py-1.5 text-right tabular-nums">{l.dias ?? "—"}</td>
-              <td className="px-3 py-1.5"><Tag texto={l.sitPosicao} /></td>
-              <td className="px-3 py-1.5"><Tag texto={l.statusRS} /></td>
-              <td className="px-3 py-1.5">{l.etapaRS}</td>
-              <td className="px-3 py-1.5">{l.solicitante ?? "—"}</td>
-              <td className="px-3 py-1.5 text-right whitespace-nowrap tabular-nums">{dataBR(l.data)}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{l.vaga}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{l.posicao}</td>
+              <td className="px-3 py-2">{l.cargo}</td>
+              <td className="px-3 py-2">{l.local}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{l.dias ?? "—"}</td>
+              <td className="px-3 py-2"><Tag texto={l.sitPosicao} /></td>
+              <td className="px-3 py-2"><Tag texto={l.statusRS} /></td>
+              <td className="px-3 py-2">{l.etapaRS}</td>
+              <td className="px-3 py-2">{l.solicitante ?? "—"}</td>
+              <td className="px-3 py-2 text-right whitespace-nowrap tabular-nums">{dataBR(l.data)}</td>
             </tr>
           ))}
         </CorpoFiltro>
       </table>
-      <p className="mt-2 text-xs text-zinc-400">
+      <p className="sticky left-0 border-t border-zinc-100 bg-white px-3 py-2 text-xs text-zinc-400">
         {ordenadas.length > LIMITE ? `Mostrando ${LIMITE} de ${num(ordenadas.length)} posições. A planilha baixada traz todas.` : `${num(ordenadas.length)} posições.`}
       </p>
     </div>

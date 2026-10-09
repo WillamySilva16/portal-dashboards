@@ -39,9 +39,9 @@ async function Conteudo() {
       </Cartao>
 
       <Cartao titulo={`Usuários (${usuarios.length})`}>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-xl ring-1 ring-zinc-200">
           <table className="w-full text-left text-sm">
-            <thead className="bg-marca text-xs text-white">
+            <thead className="cabeca-tabela">
               <tr>
                 <th className={th}>E-mail</th>
                 <th className={th}>Nome</th>
