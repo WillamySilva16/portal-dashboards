@@ -18,7 +18,7 @@ export function NavAdmin() {
           key={href}
           href={href}
           className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition ${
-            path.startsWith(href) ? "bg-marca text-white shadow-sm" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+            path.startsWith(href) ? "bg-marca text-white shadow-sm dark:bg-[#2a78d6]" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
           }`}
         >
           {texto}

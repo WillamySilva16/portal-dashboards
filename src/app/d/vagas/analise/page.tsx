@@ -125,7 +125,7 @@ function TabelaPosicoes({ linhas, filtros, ordem }: { linhas: Linha[]; filtros: 
           ))}
         </CorpoFiltro>
       </table>
-      <p className="sticky left-0 border-t border-zinc-100 bg-white px-3 py-2 text-xs text-zinc-400">
+      <p className="sticky left-0 border-t border-zinc-100 bg-superficie px-3 py-2 text-xs text-zinc-400">
         {ordenadas.length > LIMITE ? `Mostrando ${LIMITE} de ${num(ordenadas.length)} posições. A planilha baixada traz todas.` : `${num(ordenadas.length)} posições.`}
       </p>
     </div>

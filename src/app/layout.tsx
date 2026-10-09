@@ -17,12 +17,19 @@ export const metadata: Metadata = {
   description: "Catálogo de dashboards da empresa",
 };
 
+const TEMA = `try{var t=localStorage.getItem("tema");if(t?t==="escuro":matchMedia("(prefers-color-scheme: dark)").matches)document.documentElement.classList.add("dark")}catch(e){}`;
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="pt-BR"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        {/* Aplica o tema antes de desenhar a página (sem piscar branco no modo escuro) */}
+        <script dangerouslySetInnerHTML={{ __html: TEMA }} />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

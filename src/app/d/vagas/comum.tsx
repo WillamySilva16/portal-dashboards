@@ -20,7 +20,7 @@ export function Abas({ atual, filtros }: { atual: "geral" | "analise" | "arrasta
     <Link
       href={href + qs(filtros)}
       className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition ${
-        atual === id ? "bg-marca text-white shadow-sm" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+        atual === id ? "bg-marca text-white shadow-sm dark:bg-[#2a78d6]" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
       }`}
     >
       {texto}
@@ -36,7 +36,7 @@ export function Abas({ atual, filtros }: { atual: "geral" | "analise" | "arrasta
       <Link
         href={"/d/vagas/tv" + qs(filtros)}
         target="_blank"
-        className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 ring-1 ring-zinc-200 hover:bg-zinc-50"
+        className="inline-flex items-center gap-1.5 rounded-lg bg-superficie px-3 py-1.5 text-sm font-medium text-zinc-700 ring-1 ring-zinc-200 hover:bg-zinc-50"
         title="Tela cheia pra deixar numa TV (leva os filtros escolhidos aqui)"
       >
         <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
@@ -63,7 +63,7 @@ export function Topo({ titulo, subtitulo, atualizadoEm }: { titulo: string; subt
         <p className="mt-0.5 text-sm text-zinc-500">{subtitulo}</p>
       </div>
       {atualizadoEm && (
-        <p className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs text-zinc-600 ring-1 ring-zinc-200">
+        <p className="inline-flex items-center gap-2 rounded-full bg-superficie px-3 py-1 text-xs text-zinc-600 ring-1 ring-zinc-200">
           <span className="size-1.5 rounded-full bg-emerald-500" />
           Atualizado em {atualizadoEm.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" })}
         </p>
@@ -105,7 +105,7 @@ export function PeriodoRapido({ base, filtros }: { base: string; filtros: Filtro
             key={p.texto}
             href={base + qs({ ...filtros, ano: undefined, mes: undefined, de: ativo ? undefined : p.de, ate: ativo ? undefined : p.ate })}
             scroll={false}
-            className={`rounded-full px-2.5 py-1 ring-1 ${ativo ? "bg-marca text-white ring-marca" : "bg-zinc-50 text-zinc-700 ring-zinc-200 hover:bg-zinc-100"}`}
+            className={`rounded-full px-2.5 py-1 ring-1 ${ativo ? "bg-marca text-white ring-marca dark:bg-[#2a78d6] dark:ring-[#2a78d6]" : "bg-zinc-50 text-zinc-700 ring-zinc-200 hover:bg-zinc-100"}`}
           >
             {p.texto}
           </Link>
@@ -214,7 +214,7 @@ export function BotaoBaixar({ href }: { href: string }) {
     <a
       href={href}
       download
-      className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 ring-1 ring-zinc-200 hover:bg-zinc-50"
+      className="inline-flex items-center gap-1.5 rounded-lg bg-superficie px-3 py-1.5 text-xs font-medium text-zinc-700 ring-1 ring-zinc-200 hover:bg-zinc-50"
     >
       <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" aria-hidden>
         <path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14" />
