@@ -34,3 +34,32 @@ export function Secao({ titulo, acao, children }: { titulo: string; acao?: React
     </section>
   );
 }
+
+// Esqueleto do painel enquanto os dados chegam: mesma forma da tela pronta,
+// então trocar de aba mostra a estrutura na hora em vez de um "Carregando…".
+export function EsqueletoPainel() {
+  const bloco = "animate-pulse rounded-lg bg-zinc-100";
+  return (
+    <div aria-busy className="space-y-5" role="status" aria-label="Carregando">
+      <div className="space-y-2">
+        <div className={`${bloco} h-3 w-32`} />
+        <div className={`${bloco} h-7 w-64`} />
+        <div className={`${bloco} h-4 w-80`} />
+      </div>
+      <div className={`${bloco} h-10 w-96 max-w-full`} />
+      <div className="cartao h-36 p-4" />
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="cartao space-y-3 p-5">
+            <div className={`${bloco} h-3 w-24`} />
+            <div className={`${bloco} h-8 w-16`} />
+          </div>
+        ))}
+      </div>
+      <div className="grid gap-5 lg:grid-cols-2">
+        <div className="cartao h-80 p-5"><div className={`${bloco} h-full`} /></div>
+        <div className="cartao h-80 p-5"><div className={`${bloco} h-full`} /></div>
+      </div>
+    </div>
+  );
+}

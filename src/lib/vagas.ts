@@ -69,6 +69,10 @@ const ETAPAS: Record<string, string> = {
 
 const DIA = 24 * 60 * 60 * 1000;
 
+// Ordem alfabética em português, com números em ordem natural ("2" antes de "10").
+// Criado uma vez só: localeCompare com idioma cria um comparador novo a cada chamada.
+const ALFABETICA = new Intl.Collator("pt-BR", { numeric: true });
+
 // Dados crus do banco, em cache por alguns minutos (o robô atualiza a tabela inteira).
 async function lerBanco() {
   "use cache";
@@ -81,7 +85,21 @@ async function lerBanco() {
   return { rows, atualizadoEm: ultima._max.importadoEm };
 }
 
-export async function getVagas() {
+// As linhas já calculadas ficam guardadas na memória do servidor por 1 minuto:
+// trocar filtro ou aba não precisa reler e recalcular as milhares de posições.
+const MEMORIA_MS = 60 * 1000;
+let memoria: { em: number; dados: Promise<{ linhas: Linha[]; atualizadoEm: Date | null }> } | null = null;
+
+export function getVagas() {
+  if (!memoria || Date.now() - memoria.em > MEMORIA_MS) {
+    const dados = calcularVagas();
+    memoria = { em: Date.now(), dados };
+    dados.catch(() => (memoria = null)); // erro no banco: tenta de novo na próxima
+  }
+  return memoria.dados;
+}
+
+async function calcularVagas() {
   const { rows, atualizadoEm } = await lerBanco();
   const linhas: Linha[] = rows.map((r) => {
     const sit = (r.situacaoFase ?? "").trim().toUpperCase();
@@ -205,7 +223,7 @@ export function opcoes(linhas: Linha[], campo: keyof Linha) {
     const v = l[campo];
     if (v !== null && v !== undefined && v !== "") set.add(String(v));
   }
-  return [...set].sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
+  return [...set].sort(ALFABETICA.compare);
 }
 
 // ---------- Medidas (equivalentes às do Power BI) ----------
@@ -256,7 +274,9 @@ export function porMes(ls: Linha[]) {
   const grupos = new Map<string, Linha[]>();
   for (const l of ls) {
     const k = `${l.ano}-${String(l.mes).padStart(2, "0")}`;
-    grupos.set(k, [...(grupos.get(k) ?? []), l]);
+    const g = grupos.get(k);
+    if (g) g.push(l);
+    else grupos.set(k, [l]);
   }
   return [...grupos.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
@@ -333,7 +353,7 @@ export function ordenar<T>(itens: T[], ordem: string | undefined, colunas: Colun
     const vazioA = a === null || a === undefined || a === "";
     const vazioB = b === null || b === undefined || b === "";
     if (vazioA || vazioB) return Number(vazioA) - Number(vazioB);
-    const r = typeof a === "number" && typeof b === "number" ? a - b : String(a).localeCompare(String(b), "pt-BR", { numeric: true });
+    const r = typeof a === "number" && typeof b === "number" ? a - b : ALFABETICA.compare(String(a), String(b));
     return r * sinal;
   });
 }

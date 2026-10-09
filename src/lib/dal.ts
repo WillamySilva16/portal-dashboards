@@ -3,7 +3,8 @@
 // Relê o usuário no banco a cada request, então desativar alguém
 // no banco corta o acesso na hora, mesmo com sessão aberta.
 import "server-only";
-import { connection } from "next/server";
+import { after, connection } from "next/server";
+import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
@@ -67,8 +68,8 @@ async function temPermissao(user: Usuario, dashboardId: number) {
 }
 
 export async function abrirDashboard(slug: string) {
-  const user = await getCurrentUser();
-  const dashboard = await prisma.dashboard.findUnique({ where: { slug } });
+  // Usuário e dashboard em paralelo: um vai-e-volta a menos no banco por página
+  const [user, dashboard] = await Promise.all([getCurrentUser(), prisma.dashboard.findUnique({ where: { slug } })]);
   if (!dashboard || !dashboard.active) notFound();
 
   const permitido = await temPermissao(user, dashboard.id);
@@ -81,20 +82,26 @@ export async function abrirDashboard(slug: string) {
 
   // Cada filtro trocado recarrega a página; pra não encher o log,
   // só registra uma visualização a cada 30 minutos por pessoa e dashboard.
+  // Grava em segundo plano (after): a página não espera o log.
+  const h = new Headers(await headers());
+  after(() => registrarVisualizacao(user.id, user.email, dashboard.id, path, h));
+
+  return { user, dashboard };
+}
+
+async function registrarVisualizacao(userId: number, email: string, dashboardId: number, path: string, h: Headers) {
   const recente = await prisma.accessLog.findFirst({
     where: {
-      userId: user.id,
-      dashboardId: dashboard.id,
+      userId,
+      dashboardId,
       action: "VIEW_DASHBOARD",
       createdAt: { gte: new Date(Date.now() - 30 * 60 * 1000) },
     },
     select: { id: true },
   });
   if (!recente) {
-    await registrarLog("VIEW_DASHBOARD", user.email, { userId: user.id, dashboardId: dashboard.id, path });
+    await registrarLog("VIEW_DASHBOARD", email, { userId, dashboardId, path }, h);
   }
-
-  return { user, dashboard };
 }
 
 // Download da planilha de um dashboard: mesma permissão de quem pode abrir,

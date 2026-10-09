@@ -2,7 +2,8 @@
 // pra tela (cabeçalho que ordena) e pra planilha baixada.
 import { hojeUTC, type Coluna, type Linha, type VagaTabela } from "@/lib/vagas";
 
-export const dataBR = (d: Date) => d.toLocaleDateString("pt-BR", { timeZone: "UTC" });
+const DATA_BR = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });
+export const dataBR = (d: Date) => DATA_BR.format(d);
 
 export const COLUNAS_VAGAS: Coluna<VagaTabela>[] = [
   { id: "data", titulo: "Data", valor: (v) => v.data, numero: true },

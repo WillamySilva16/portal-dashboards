@@ -4,7 +4,8 @@ import { dataBR } from "./colunas";
 
 export { dataBR };
 
-export const num = (n: number) => n.toLocaleString("pt-BR");
+const NUM_BR = new Intl.NumberFormat("pt-BR");
+export const num = (n: number) => NUM_BR.format(n);
 
 // Monta a query string mantendo os filtros ao trocar de aba (e a ordem da tabela, se tiver)
 export function qs(f: Filtros, ordem?: string) {
@@ -125,27 +126,6 @@ export function variacao(atual: number | null, anterior: number | null | undefin
 
 export const opcoesMes = MESES.map((m, i) => ({ valor: String(i + 1), texto: m }));
 export const lista = (vs: string[]) => vs.map((v) => ({ valor: v, texto: v }));
-
-export function Tag({ texto }: { texto: string | null }) {
-  if (!texto) return <span className="text-zinc-400">—</span>;
-  const cor: Record<string, string> = {
-    "Fora do prazo": "bg-red-50 text-red-700",
-    "Em alerta": "bg-amber-50 text-amber-800",
-    "Dentro do prazo": "bg-green-50 text-green-800",
-    "Concluída": "bg-green-50 text-green-800",
-    "CONCLUÍDA": "bg-green-50 text-green-800",
-    "Cancelada": "bg-zinc-100 text-zinc-600",
-    "EXCLUÍDA": "bg-red-50 text-red-700",
-    "Em andamento": "bg-blue-50 text-blue-800",
-    "Outra situação": "bg-amber-50 text-amber-800",
-    "Fechada": "bg-green-50 text-green-800",
-    "Pendente": "bg-amber-50 text-amber-800",
-    "Excluída": "bg-red-50 text-red-700",
-    "Não preenchida": "bg-zinc-100 text-zinc-600",
-    "EM ANDAMENTO": "bg-blue-50 text-blue-800",
-  };
-  return <span className={`rounded px-1.5 py-0.5 text-xs whitespace-nowrap ${cor[texto] ?? "bg-zinc-100 text-zinc-700"}`}>{texto}</span>;
-}
 
 const ROTULOS: Record<string, string> = {
   ano: "Ano", mes: "Mês", base: "Base", local: "Cliente", cliente: "Empresa", situacao: "Situação",

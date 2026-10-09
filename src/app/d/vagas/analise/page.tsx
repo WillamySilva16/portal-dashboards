@@ -3,11 +3,12 @@ import { Suspense } from "react";
 import { Cabecalho } from "@/components/cabecalho";
 import { Filtros } from "@/components/filtros";
 import { GraficoBarras, GraficoMensal } from "@/components/graficos";
-import { CorpoFiltro, FiltroCruzado } from "@/components/filtro-cruzado";
-import { Kpi, Secao } from "@/components/kpi";
+import { CorpoTabela } from "@/components/corpo-tabela";
+import { FiltroCruzado } from "@/components/filtro-cruzado";
+import { EsqueletoPainel, Kpi, Secao } from "@/components/kpi";
 import { abrirDashboard } from "@/lib/dal";
 import { filtrar, filtrosTexto, getVagas, lerFiltros, medidasPosicoes, opcoes, ordenar, porMes, vagasPor, type Filtros as FiltrosVagas, type Linha } from "@/lib/vagas";
-import { Abas, BotaoBaixar, CabecalhoOrdenavel, dataBR, FiltrosAtivos, Topo, PeriodoRapido, lerOrdem, lista, num, opcoesMes, qs, subtitulo, Tag } from "../comum";
+import { Abas, BotaoBaixar, CabecalhoOrdenavel, dataBR, FiltrosAtivos, Topo, PeriodoRapido, lerOrdem, lista, num, opcoesMes, qs, subtitulo } from "../comum";
 import { COLUNAS_POSICOES } from "../colunas";
 
 export const metadata = { title: "Análise de Recrutamento | Portal de Dashboards" };
@@ -17,7 +18,7 @@ export default function Page({ searchParams }: PageProps<"/d/vagas/analise">) {
     <div className="flex flex-1 flex-col">
       <Cabecalho />
       <main className="mx-auto w-full max-w-[1600px] space-y-5 px-6 py-8">
-        <Suspense fallback={<p className="text-sm text-zinc-500">Carregando…</p>}>
+        <Suspense fallback={<EsqueletoPainel />}>
           <Conteudo searchParams={searchParams} />
         </Suspense>
       </main>
@@ -108,22 +109,13 @@ function TabelaPosicoes({ linhas, filtros, ordem }: { linhas: Linha[]; filtros: 
     <div className="max-h-[560px] overflow-auto rounded-xl ring-1 ring-zinc-200">
       <table className="tabela w-full text-left text-[13px] text-zinc-700">
         <CabecalhoOrdenavel colunas={COLUNAS_POSICOES} base="/d/vagas/analise" filtros={filtros} ordem={ordem} />
-        <CorpoFiltro>
-          {ordenadas.slice(0, LIMITE).map((l) => (
-            <tr key={`${l.vaga}-${l.posicao}`} data-vaga={l.vaga}>
-              <td className="px-3 py-2 text-right tabular-nums">{l.vaga}</td>
-              <td className="px-3 py-2 text-right tabular-nums">{l.posicao}</td>
-              <td className="px-3 py-2">{l.cargo}</td>
-              <td className="px-3 py-2">{l.local}</td>
-              <td className="px-3 py-2 text-right tabular-nums">{l.dias ?? "—"}</td>
-              <td className="px-3 py-2"><Tag texto={l.sitPosicao} /></td>
-              <td className="px-3 py-2"><Tag texto={l.statusRS} /></td>
-              <td className="px-3 py-2">{l.etapaRS}</td>
-              <td className="px-3 py-2">{l.solicitante ?? "—"}</td>
-              <td className="px-3 py-2 text-right whitespace-nowrap tabular-nums">{dataBR(l.data)}</td>
-            </tr>
-          ))}
-        </CorpoFiltro>
+        <CorpoTabela
+          key={qs(filtros, ordem)}
+          tipos={["num", "num", "texto", "texto", "num", "tag", "tag", "texto", "texto", "num"]}
+          linhas={ordenadas.slice(0, LIMITE).map((l) => [
+            l.vaga, l.vaga, l.posicao, l.cargo, l.local, l.dias, l.sitPosicao, l.statusRS, l.etapaRS, l.solicitante, dataBR(l.data),
+          ])}
+        />
       </table>
       <p className="sticky left-0 border-t border-zinc-100 bg-superficie px-3 py-2 text-xs text-zinc-400">
         {ordenadas.length > LIMITE ? `Mostrando ${LIMITE} de ${num(ordenadas.length)} posições. A planilha baixada traz todas.` : `${num(ordenadas.length)} posições.`}

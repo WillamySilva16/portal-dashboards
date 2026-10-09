@@ -3,8 +3,9 @@ import { Suspense } from "react";
 import { Cabecalho } from "@/components/cabecalho";
 import { Filtros } from "@/components/filtros";
 import { GraficoBarras, GraficoMensal } from "@/components/graficos";
-import { CorpoFiltro, FiltroCruzado } from "@/components/filtro-cruzado";
-import { Kpi, Secao } from "@/components/kpi";
+import { CorpoTabela } from "@/components/corpo-tabela";
+import { FiltroCruzado } from "@/components/filtro-cruzado";
+import { EsqueletoPainel, Kpi, Secao } from "@/components/kpi";
 import { abrirDashboard } from "@/lib/dal";
 import {
   arrastadasEm,
@@ -25,7 +26,7 @@ import {
   type Filtros as FiltrosVagas,
   type Linha,
 } from "@/lib/vagas";
-import { Abas, BotaoBaixar, CabecalhoOrdenavel, dataBR, FiltrosAtivos, Topo, PeriodoRapido, lerOrdem, lista, num, opcoesMes, qs, Tag } from "../comum";
+import { Abas, BotaoBaixar, CabecalhoOrdenavel, dataBR, FiltrosAtivos, Topo, PeriodoRapido, lerOrdem, lista, num, opcoesMes, qs } from "../comum";
 import { COLUNAS_ARRASTADAS, diasEmAberto } from "../colunas";
 
 export const metadata = { title: "Vagas arrastadas | Portal de Dashboards" };
@@ -35,7 +36,7 @@ export default function Page({ searchParams }: PageProps<"/d/vagas/arrastadas">)
     <div className="flex flex-1 flex-col">
       <Cabecalho />
       <main className="mx-auto w-full max-w-[1600px] space-y-5 px-6 py-8">
-        <Suspense fallback={<p className="text-sm text-zinc-500">Carregando…</p>}>
+        <Suspense fallback={<EsqueletoPainel />}>
           <Conteudo searchParams={searchParams} />
         </Suspense>
       </main>
@@ -155,21 +156,13 @@ function TabelaArrastadas({ linhas, filtros, ordem }: { linhas: Linha[]; filtros
     <div className="max-h-[560px] overflow-auto rounded-xl ring-1 ring-zinc-200">
       <table className="tabela w-full text-left text-[13px] text-zinc-700">
         <CabecalhoOrdenavel colunas={COLUNAS_ARRASTADAS} base="/d/vagas/arrastadas" filtros={filtros} ordem={ordem} />
-        <CorpoFiltro>
-          {vagas.slice(0, LIMITE).map((v) => (
-            <tr key={v.vaga} data-vaga={v.vaga}>
-              <td className="px-3 py-2 text-right whitespace-nowrap tabular-nums">{dataBR(v.data)}</td>
-              <td className="px-3 py-2 text-right tabular-nums">{v.vaga}</td>
-              <td className="px-3 py-2">{v.supervisao ?? "—"}</td>
-              <td className="px-3 py-2">{v.cargo}</td>
-              <td className="px-3 py-2">{v.local}</td>
-              <td className="px-3 py-2 whitespace-nowrap">{v.base ?? "—"}</td>
-              <td className="px-3 py-2 text-right tabular-nums">{v.pendentes}</td>
-              <td className="px-3 py-2 text-right tabular-nums">{diasEmAberto(v, hoje) ?? "—"}</td>
-              <td className="px-3 py-2"><Tag texto={v.situacao} /></td>
-            </tr>
-          ))}
-        </CorpoFiltro>
+        <CorpoTabela
+          key={qs(filtros, ordem)}
+          tipos={["num", "num", "texto", "texto", "texto", "texto", "num", "num", "tag"]}
+          linhas={vagas.slice(0, LIMITE).map((v) => [
+            v.vaga, dataBR(v.data), v.vaga, v.supervisao, v.cargo, v.local, v.base, v.pendentes, diasEmAberto(v, hoje), v.situacao,
+          ])}
+        />
       </table>
       <p className="sticky left-0 border-t border-zinc-100 bg-superficie px-3 py-2 text-xs text-zinc-400">
         {vagas.length > LIMITE
