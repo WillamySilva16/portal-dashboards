@@ -135,6 +135,8 @@ export type Filtros = {
   etapa?: string;
   sitPosicao?: string;
   vaga?: string;
+  de?: string; // período de abertura, "2026-09-01"
+  ate?: string;
 };
 
 export function lerFiltros(sp: Record<string, string | string[] | undefined>): Filtros {
@@ -144,11 +146,29 @@ export function lerFiltros(sp: Record<string, string | string[] | undefined>): F
     return t ? t : undefined;
   };
   const n = (k: string) => (s(k) && !isNaN(Number(s(k))) ? Number(s(k)) : undefined);
+  const d = (k: string) => (/^\d{4}-\d{2}-\d{2}$/.test(s(k) ?? "") && !isNaN(Date.parse(s(k)!)) ? s(k) : undefined);
   return {
     ano: n("ano"), mes: n("mes"), base: s("base"), local: s("local"), cliente: s("cliente"),
     situacao: s("situacao"), status: s("status"), statusRS: s("statusRS"),
     categoria: s("categoria"), etapa: s("etapa"), sitPosicao: s("sitPosicao"), vaga: s("vaga"),
+    de: d("de"), ate: d("ate"),
   };
+}
+
+// Atalhos do filtro de período de abertura, a partir de hoje
+export function periodosRapidos() {
+  const iso = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+  const hoje = hojeUTC();
+  const d = new Date(hoje);
+  const a = d.getUTCFullYear();
+  const m = d.getUTCMonth();
+  return [
+    { texto: "Este mês", de: iso(Date.UTC(a, m, 1)), ate: iso(hoje) },
+    { texto: "Mês passado", de: iso(Date.UTC(a, m - 1, 1)), ate: iso(Date.UTC(a, m, 0)) },
+    { texto: "Últimos 30 dias", de: iso(hoje - 29 * DIA), ate: iso(hoje) },
+    { texto: "Últimos 90 dias", de: iso(hoje - 89 * DIA), ate: iso(hoje) },
+    { texto: "Este ano", de: iso(Date.UTC(a, 0, 1)), ate: iso(hoje) },
+  ];
 }
 
 // Filtros como texto, pro filtro cruzado (lado do navegador)
@@ -156,9 +176,14 @@ export function filtrosTexto(f: Filtros) {
   return Object.fromEntries(Object.entries(f).map(([k, v]) => [k, v === undefined ? undefined : String(v)]));
 }
 
+// `ignorarPeriodo` ignora só ano/mês; o período de abertura (de/até) vale sempre
 export function filtrar(linhas: Linha[], f: Filtros, ignorarPeriodo = false) {
+  const de = f.de ? Date.parse(f.de) : -Infinity;
+  const ate = f.ate ? Date.parse(f.ate) : Infinity;
   return linhas.filter(
     (l) =>
+      l.data.getTime() >= de &&
+      l.data.getTime() <= ate &&
       (ignorarPeriodo || f.ano === undefined || l.ano === f.ano) &&
       (ignorarPeriodo || f.mes === undefined || l.mes === f.mes) &&
       (f.base === undefined || l.base === f.base) &&

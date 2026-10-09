@@ -25,7 +25,7 @@ import {
   type Filtros as FiltrosVagas,
   type Linha,
 } from "@/lib/vagas";
-import { Abas, BotaoBaixar, CabecalhoOrdenavel, dataBR, FiltrosAtivos, lerOrdem, lista, num, opcoesMes, qs, Tag } from "../comum";
+import { Abas, BotaoBaixar, CabecalhoOrdenavel, dataBR, FiltrosAtivos, PeriodoRapido, lerOrdem, lista, num, opcoesMes, qs, Tag } from "../comum";
 import { COLUNAS_ARRASTADAS, diasEmAberto } from "../colunas";
 
 export const metadata = { title: "Vagas arrastadas | Portal de Dashboards" };
@@ -76,11 +76,14 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/ar
           campos={[
             { tipo: "select", nome: "ano", rotulo: "Ano de referência", valor: f.ano?.toString(), opcoes: lista(opcoes(linhas, "ano")) },
             { tipo: "select", nome: "mes", rotulo: "Mês de referência", valor: f.mes?.toString(), opcoes: opcoesMes },
+            { tipo: "data", nome: "de", rotulo: "Aberta de", valor: f.de },
+            { tipo: "data", nome: "ate", rotulo: "Aberta até", valor: f.ate },
             { tipo: "select", nome: "base", rotulo: "Base", valor: f.base, opcoes: lista(opcoes(linhas, "base")) },
             { tipo: "select", nome: "local", rotulo: "Cliente", valor: f.local, opcoes: lista(opcoes(linhas, "local")) },
             { tipo: "texto", nome: "vaga", rotulo: "Vaga", valor: f.vaga, placeholder: "Nº da vaga" },
           ]}
         />
+        <PeriodoRapido base="/d/vagas/arrastadas" filtros={f} />
         <FiltrosAtivos base="/d/vagas/arrastadas" filtros={f} />
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

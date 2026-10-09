@@ -7,7 +7,7 @@ import { CorpoFiltro, FiltroCruzado } from "@/components/filtro-cruzado";
 import { Kpi, Secao } from "@/components/kpi";
 import { abrirDashboard } from "@/lib/dal";
 import { filtrar, filtrosTexto, getVagas, lerFiltros, medidasPosicoes, opcoes, ordenar, porMes, vagasPor, type Filtros as FiltrosVagas, type Linha } from "@/lib/vagas";
-import { Abas, BotaoBaixar, CabecalhoOrdenavel, dataBR, FiltrosAtivos, lerOrdem, lista, num, opcoesMes, qs, subtitulo, Tag } from "../comum";
+import { Abas, BotaoBaixar, CabecalhoOrdenavel, dataBR, FiltrosAtivos, PeriodoRapido, lerOrdem, lista, num, opcoesMes, qs, subtitulo, Tag } from "../comum";
 import { COLUNAS_POSICOES } from "../colunas";
 
 export const metadata = { title: "Análise de Recrutamento | Portal de Dashboards" };
@@ -54,6 +54,8 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/an
           campos={[
             { tipo: "select", nome: "ano", rotulo: "Ano", valor: f.ano?.toString(), opcoes: lista(opcoes(linhas, "ano")) },
             { tipo: "select", nome: "mes", rotulo: "Mês", valor: f.mes?.toString(), opcoes: opcoesMes },
+            { tipo: "data", nome: "de", rotulo: "Aberta de", valor: f.de },
+            { tipo: "data", nome: "ate", rotulo: "Aberta até", valor: f.ate },
             { tipo: "select", nome: "base", rotulo: "Base", valor: f.base, opcoes: lista(opcoes(linhas, "base")) },
             { tipo: "select", nome: "local", rotulo: "Cliente", valor: f.local, opcoes: lista(opcoes(linhas, "local")) },
             { tipo: "select", nome: "sitPosicao", rotulo: "Situação da posição", valor: f.sitPosicao, opcoes: lista(opcoes(linhas, "sitPosicao")) },
@@ -61,6 +63,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/d/vagas/an
             { tipo: "texto", nome: "vaga", rotulo: "Vaga", valor: f.vaga, placeholder: "Nº da vaga" },
           ]}
         />
+        <PeriodoRapido base="/d/vagas/analise" filtros={f} />
         <FiltrosAtivos base="/d/vagas/analise" filtros={f} />
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">

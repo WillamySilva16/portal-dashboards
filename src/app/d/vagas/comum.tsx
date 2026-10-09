@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MESES, type Coluna, type Filtros, type Linha } from "@/lib/vagas";
+import { MESES, periodosRapidos, type Coluna, type Filtros, type Linha } from "@/lib/vagas";
 import { dataBR } from "./colunas";
 
 export { dataBR };
@@ -31,11 +31,22 @@ export function Abas({ atual, filtros }: { atual: "geral" | "analise" | "arrasta
       {aba("geral", "/d/vagas", "Visão geral")}
       {aba("analise", "/d/vagas/analise", "Análise de Recrutamento")}
       {aba("arrastadas", "/d/vagas/arrastadas", "Vagas arrastadas")}
-      <Link href="/d/vagas/tv" target="_blank" className="ml-auto pb-2 text-sm text-zinc-500 hover:text-zinc-900" title="Tela cheia, sem filtros, pra deixar numa TV">
+      <Link href={"/d/vagas/tv" + qs(filtros)} target="_blank" className="ml-auto pb-2 text-sm text-zinc-500 hover:text-zinc-900" title="Tela cheia pra deixar numa TV (leva os filtros escolhidos aqui)">
         Modo TV ↗
       </Link>
     </nav>
   );
+}
+
+// "2026-09-01" -> "01/09/2026"
+const isoBR = (iso: string) => iso.split("-").reverse().join("/");
+
+// "Abertas de 01/09/2026 a 30/09/2026"
+export function periodoTexto(f: Filtros) {
+  if (f.de && f.ate) return `Abertas de ${isoBR(f.de)} a ${isoBR(f.ate)}`;
+  if (f.de) return `Abertas a partir de ${isoBR(f.de)}`;
+  if (f.ate) return `Abertas até ${isoBR(f.ate)}`;
+  return null;
 }
 
 // Equivalente à medida "Subtítulo" do Power BI
@@ -43,7 +54,31 @@ export function subtitulo(f: Filtros, linhas: Linha[]) {
   const mes = f.mes ? MESES[f.mes - 1] : "Todos os meses";
   const ano = f.ano ? String(f.ano) : "todos os anos";
   const ate = linhas.reduce<Date | null>((m, l) => (!m || l.data > m ? l.data : m), null);
-  return `${mes} de ${ano}${ate ? `  |  Dados até ${dataBR(ate)}` : ""}`;
+  const periodo = periodoTexto(f);
+  const base = periodo && !f.ano && !f.mes ? periodo : `${mes} de ${ano}${periodo ? `  |  ${periodo}` : ""}`;
+  return `${base}${ate ? `  |  Dados até ${dataBR(ate)}` : ""}`;
+}
+
+// Atalhos de período de abertura (este mês, últimos 30 dias...). Trocam ano/mês pelo período.
+export function PeriodoRapido({ base, filtros }: { base: string; filtros: Filtros }) {
+  return (
+    <div className="-mt-1 flex flex-wrap items-center gap-1.5 text-xs">
+      <span className="font-medium text-zinc-500">Abertas em:</span>
+      {periodosRapidos().map((p) => {
+        const ativo = filtros.de === p.de && filtros.ate === p.ate;
+        return (
+          <Link
+            key={p.texto}
+            href={base + qs({ ...filtros, ano: undefined, mes: undefined, de: ativo ? undefined : p.de, ate: ativo ? undefined : p.ate })}
+            scroll={false}
+            className={`rounded-full px-2.5 py-1 ring-1 ${ativo ? "bg-marca text-white ring-marca" : "bg-white text-zinc-700 ring-zinc-300 hover:bg-zinc-50"}`}
+          >
+            {p.texto}
+          </Link>
+        );
+      })}
+    </div>
+  );
 }
 
 // Texto "▲ 12 vs. mês anterior"
@@ -81,6 +116,7 @@ export function Tag({ texto }: { texto: string | null }) {
 const ROTULOS: Record<string, string> = {
   ano: "Ano", mes: "Mês", base: "Base", local: "Cliente", cliente: "Empresa", situacao: "Situação",
   status: "Status", statusRS: "Status R&S", categoria: "Categoria", etapa: "Etapa", sitPosicao: "Situação da posição", vaga: "Vaga",
+  de: "Aberta a partir de", ate: "Aberta até",
 };
 
 // Faixa "Filtros ativos" com um × em cada um, como os chips do Power BI
@@ -98,7 +134,7 @@ export function FiltrosAtivos({ base, filtros }: { base: string; filtros: Filtro
           title="Tirar este filtro"
           className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-blue-900 ring-1 ring-blue-200 hover:bg-blue-100"
         >
-          {ROTULOS[k] ?? k}: <strong className="font-semibold">{k === "mes" ? MESES[Number(v) - 1] : String(v)}</strong>
+          {ROTULOS[k] ?? k}: <strong className="font-semibold">{k === "mes" ? MESES[Number(v) - 1] : k === "de" || k === "ate" ? isoBR(String(v)) : String(v)}</strong>
           <span aria-hidden className="text-blue-500">×</span>
         </Link>
       ))}
