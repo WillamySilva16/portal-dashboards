@@ -31,6 +31,9 @@ export function Abas({ atual, filtros }: { atual: "geral" | "analise" | "arrasta
       {aba("geral", "/d/vagas", "Visão geral")}
       {aba("analise", "/d/vagas/analise", "Análise de Recrutamento")}
       {aba("arrastadas", "/d/vagas/arrastadas", "Vagas arrastadas")}
+      <Link href="/d/vagas/tv" target="_blank" className="ml-auto pb-2 text-sm text-zinc-500 hover:text-zinc-900" title="Tela cheia, sem filtros, pra deixar numa TV">
+        Modo TV ↗
+      </Link>
     </nav>
   );
 }
