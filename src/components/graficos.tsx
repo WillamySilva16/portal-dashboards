@@ -20,7 +20,7 @@ const fmt = (v: unknown) => Number(v).toLocaleString("pt-BR");
 function Dica({ active, payload, label, clicavel }: { active?: boolean; payload?: { name?: string; value?: unknown; color?: string }[]; label?: unknown; clicavel?: boolean }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg bg-white px-3 py-2 text-xs shadow-md ring-1 ring-zinc-200">
+    <div className="rounded-lg bg-superficie px-3 py-2 text-xs shadow-md ring-1 ring-zinc-200">
       <p className="mb-1 font-semibold text-zinc-900">{String(label)}</p>
       {payload.map((p) => (
         <p key={p.name} className="flex items-center gap-2 text-zinc-600">

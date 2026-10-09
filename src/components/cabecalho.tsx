@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { signOut } from "@/auth";
 import { getCurrentUser } from "@/lib/dal";
+import { BotaoTema } from "./botao-tema";
 
 // Ícone do portal (barras), em SVG pra não depender de imagem
 export function Logo({ className = "size-8" }: { className?: string }) {
@@ -22,9 +23,12 @@ export function Cabecalho() {
           <Logo />
           Portal de Dashboards
         </Link>
-        <Suspense fallback={<span className="text-sm text-white/60">…</span>}>
-          <Usuario />
-        </Suspense>
+        <div className="flex items-center gap-1">
+          <BotaoTema className="text-white/80 hover:bg-white/10 hover:text-white" />
+          <Suspense fallback={<span className="text-sm text-white/60">…</span>}>
+            <Usuario />
+          </Suspense>
+        </div>
       </div>
     </header>
   );

@@ -1,7 +1,7 @@
 // Peças visuais reaproveitadas nas telas de admin
 export const input = "campo";
-export const botao = "h-9 rounded-lg bg-marca px-4 text-sm font-medium text-white shadow-sm transition hover:bg-[#21456a]";
-export const botaoLeve = "h-8 rounded-lg bg-white px-3 text-sm text-zinc-700 ring-1 ring-zinc-200 hover:bg-zinc-50";
+export const botao = "h-9 rounded-lg bg-marca px-4 text-sm font-medium text-white shadow-sm transition hover:bg-[#21456a] dark:bg-[#2a78d6] dark:hover:bg-[#3a86e0]";
+export const botaoLeve = "h-8 rounded-lg bg-superficie px-3 text-sm text-zinc-700 ring-1 ring-zinc-200 hover:bg-zinc-50";
 export const th = "px-3 py-2.5 font-semibold whitespace-nowrap";
 export const cabecaTabela = "cabeca-tabela";
 export const td = "px-3 py-2 align-middle";

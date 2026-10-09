@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { signIn } from "@/auth";
+import { BotaoTema } from "@/components/botao-tema";
 import { Logo } from "@/components/cabecalho";
 
 export const metadata = { title: "Entrar | Portal de Dashboards" };
@@ -23,7 +24,8 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
         <p className="relative text-xs text-white/40">Acesso restrito ao e-mail corporativo</p>
       </section>
 
-      <section className="flex items-center justify-center p-6">
+      <section className="relative flex items-center justify-center p-6">
+        <BotaoTema className="absolute top-4 right-4 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900" />
         <div className="w-full max-w-sm">
           <p className="mb-8 flex items-center gap-2.5 font-semibold text-zinc-900 lg:hidden">
             <Logo className="size-9 bg-marca text-white" />
@@ -45,7 +47,7 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
           >
             <button
               type="submit"
-              className="flex w-full items-center justify-center gap-3 rounded-xl bg-white px-4 py-3 text-sm font-medium text-zinc-800 shadow-sm ring-1 ring-zinc-300 transition hover:bg-zinc-50 hover:shadow"
+              className="flex w-full items-center justify-center gap-3 rounded-xl bg-superficie px-4 py-3 text-sm font-medium text-zinc-800 shadow-sm ring-1 ring-zinc-300 transition hover:bg-zinc-50 hover:shadow"
             >
               <svg viewBox="0 0 48 48" className="size-5" aria-hidden>
                 <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" />

@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Modo escuro: classe "dark" no <html> (botão no cabeçalho) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #f3f5f8;
   --foreground: #1f2430;
@@ -8,14 +11,56 @@
   --serie-2: #1baf7a; /* verde-água: concluídas */
   --grade: #e4e7ec;
   --texto-eixo: #667085;
+  --superficie: #ffffff; /* fundo dos cartões */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-marca: #17324d;
+  --color-superficie: var(--superficie);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+/* Modo escuro: em vez de repetir "dark:" em cada tela, troca as cores da paleta
+   usada (cinzas e tons claros dos selos) pelas versões escuras. */
+html.dark {
+  color-scheme: dark;
+  --background: #0d1117;
+  --foreground: #e6edf3;
+  --superficie: #161b22;
+  --grade: #2d333b;
+  --texto-eixo: #9aa3ad;
+  --serie-1: #4c9be8;
+  --serie-2: #2fc192;
+
+  --color-zinc-50: #1c2128;
+  --color-zinc-100: #22282f;
+  --color-zinc-200: #2d333b;
+  --color-zinc-300: #3a414a;
+  --color-zinc-400: #7d8590;
+  --color-zinc-500: #9aa3ad;
+  --color-zinc-600: #b4bcc6;
+  --color-zinc-700: #c9d1d9;
+  --color-zinc-800: #dbe1e7;
+  --color-zinc-900: #eef1f4;
+
+  --color-blue-50: rgb(76 155 232 / 0.14);
+  --color-blue-100: rgb(76 155 232 / 0.24);
+  --color-blue-200: rgb(76 155 232 / 0.4);
+  --color-blue-500: #6aa8ec;
+  --color-blue-800: #a5cdf6;
+  --color-blue-900: #c3defa;
+  --color-amber-50: rgb(245 165 36 / 0.14);
+  --color-amber-200: rgb(245 165 36 / 0.35);
+  --color-amber-700: #f5b54a;
+  --color-amber-800: #f7c368;
+  --color-red-50: rgb(228 87 87 / 0.15);
+  --color-red-200: rgb(228 87 87 / 0.35);
+  --color-red-700: #f19999;
+  --color-green-50: rgb(27 175 122 / 0.15);
+  --color-green-800: #6fd8a9;
 }
 
 body {
@@ -32,11 +77,11 @@ body {
 /* Peças visuais comuns do portal */
 @layer components {
   .cartao {
-    @apply rounded-2xl bg-white ring-1 ring-zinc-200/80;
+    @apply rounded-2xl bg-superficie ring-1 ring-zinc-200/80;
     box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.03);
   }
   .campo {
-    @apply h-9 rounded-lg border border-zinc-300 bg-white px-2.5 text-sm text-zinc-900 transition outline-none;
+    @apply h-9 rounded-lg border border-zinc-300 bg-superficie px-2.5 text-sm text-zinc-900 transition outline-none;
     @apply focus:border-[#2a78d6] focus:ring-3 focus:ring-[#2a78d6]/15;
   }
   .rotulo {
